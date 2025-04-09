@@ -65,9 +65,9 @@ export const createServer = (
     // Add root route
     app.get("/", (req: Request, res: Response) => {
       res.json({
-        name: "json-rest-mock-api",
+        name: "pretendo",
         resources: config.resources.map((resource) => resource.name),
-        documentation: "https://github.com/alexberriman/json-rest-mock-api",
+        documentation: "https://github.com/alexberriman/pretendo",
       });
     });
 

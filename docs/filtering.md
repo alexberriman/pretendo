@@ -1,6 +1,6 @@
 # 🔍 Filtering
 
-JSON REST Mock API provides powerful filtering capabilities to help you retrieve exactly the data you need.
+Pretendo provides powerful filtering capabilities to help you retrieve exactly the data you need.
 
 **← [API Design](./api-design.md) | [Table of Contents](./README.md) | [Next: Sorting →](./sorting.md)**
 

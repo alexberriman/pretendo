@@ -18,7 +18,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",
@@ -47,7 +47,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",
@@ -90,7 +90,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",
@@ -137,7 +137,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",
@@ -177,7 +177,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",
@@ -209,7 +209,7 @@ GET /tags?expand=posts
 
 ## Circular Expansion
 
-JSON REST Mock API automatically handles circular expansion to prevent infinite recursion:
+Pretendo automatically handles circular expansion to prevent infinite recursion:
 
 ```
 GET /users?expand=posts.author
@@ -231,7 +231,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",

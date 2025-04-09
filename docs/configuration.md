@@ -1,6 +1,6 @@
 # ⚙️ Configuration
 
-JSON REST Mock API offers extensive configuration options to customize its behavior to match your specific needs.
+Pretendo offers extensive configuration options to customize its behavior to match your specific needs.
 
 **← [Relationships](./relationships.md) | [Table of Contents](./README.md) | [Next: Authentication →](./authentication.md)**
 
@@ -195,13 +195,13 @@ You can set configuration options via command-line arguments:
 
 ```bash
 # Basic server options
-json-rest-mock-api --config api-config.yml --port 3001 --data-file ./data.json
+pretendo --config api-config.yml --port 3001 --data-file ./data.json
 
 # Feature toggles
-json-rest-mock-api --auth --cors --latency --read-only
+pretendo --auth --cors --latency --read-only
 
 # Latency options
-json-rest-mock-api --latency --latency-min 100 --latency-max 300
+pretendo --latency --latency-min 100 --latency-max 300
 ```
 
 ## Environment Variables
@@ -214,7 +214,7 @@ export JSON_REST_MOCK_API_PORT=4000
 export JSON_REST_MOCK_API_AUTH_ENABLED=true
 
 # Start the server
-json-rest-mock-api
+pretendo
 ```
 
 ## Programmatic Configuration
@@ -222,7 +222,7 @@ json-rest-mock-api
 When using the API programmatically, you can pass configuration options:
 
 ```typescript
-import { createServer } from 'json-rest-mock-api';
+import { createServer } from 'pretendo';
 
 const server = createServer({
   resources: [

@@ -43,7 +43,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "author": {
       "username": "johndoe"
     }
@@ -72,7 +72,7 @@ Response:
 [
   {
     "id": 1,
-    "title": "Getting Started with JSON REST Mock API",
+    "title": "Getting Started with Pretendo",
     "content": "This is a beginner's guide...",
     "userId": 1,
     "createdAt": "2023-04-15T10:30:00Z",

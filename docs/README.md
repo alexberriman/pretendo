@@ -1,6 +1,6 @@
-# 📚 JSON REST Mock API Documentation
+# 📚 Pretendo Documentation
 
-Welcome to the comprehensive documentation for JSON REST Mock API. This guide will help you understand how to configure, run, and use the mock API to its fullest potential.
+Welcome to the comprehensive documentation for Pretendo. This guide will help you understand how to configure, run, and use the mock API to its fullest potential.
 
 ## Table of Contents
 

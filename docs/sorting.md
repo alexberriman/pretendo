@@ -1,6 +1,6 @@
 # 🔄 Sorting
 
-JSON REST Mock API provides flexible sorting capabilities to order your resource collections according to various criteria.
+Pretendo provides flexible sorting capabilities to order your resource collections according to various criteria.
 
 **← [Filtering](./filtering.md) | [Table of Contents](./README.md) | [Next: Pagination →](./pagination.md)**
 

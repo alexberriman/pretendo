@@ -1,6 +1,6 @@
 # 📋 API Schema Reference
 
-The heart of JSON REST Mock API is the schema definition. This document outlines how to structure your API specification to create resources, define relationships, and configure server behavior.
+The heart of Pretendo is the schema definition. This document outlines how to structure your API specification to create resources, define relationships, and configure server behavior.
 
 **← [Table of Contents](./README.md) | [Next: API Design Principles →](./api-design.md)**
 
@@ -301,6 +301,6 @@ data:
 
 ## Next Steps
 
-Now that you understand how to define your API schema, learn about the API design principles JSON REST Mock API follows in the next section.
+Now that you understand how to define your API schema, learn about the API design principles Pretendo follows in the next section.
 
 **← [Table of Contents](./README.md) | [Next: API Design Principles →](./api-design.md)**

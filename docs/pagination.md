@@ -1,6 +1,6 @@
 # 📄 Pagination
 
-JSON REST Mock API supports powerful pagination features to efficiently manage large collections of resources.
+Pretendo supports powerful pagination features to efficiently manage large collections of resources.
 
 **← [Sorting](./sorting.md) | [Table of Contents](./README.md) | [Next: Relationships →](./relationships.md)**
 

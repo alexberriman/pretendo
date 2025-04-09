@@ -1,6 +1,6 @@
 # 🔄 CRUD Operations
 
-JSON REST Mock API automatically generates a complete set of CRUD (Create, Read, Update, Delete) endpoints for each resource you define in your schema.
+Pretendo automatically generates a complete set of CRUD (Create, Read, Update, Delete) endpoints for each resource you define in your schema.
 
 **← [Resources](./resources.md) | [Table of Contents](./README.md) | [Next: Filtering →](./filtering.md)**
 
@@ -236,7 +236,7 @@ If the resource doesn't exist:
 
 ## Bulk Operations
 
-JSON REST Mock API also supports bulk operations for creating, updating, and deleting multiple resources at once.
+Pretendo also supports bulk operations for creating, updating, and deleting multiple resources at once.
 
 ### Bulk Create
 

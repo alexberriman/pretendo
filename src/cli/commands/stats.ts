@@ -8,6 +8,6 @@ export const handleStats = async (database: DatabaseService): Promise<void> => {
     console.log(theme.error("Database statistics not available"));
     return;
   }
-  
+
   console.log(OutputFormatter.formatDatabaseStats(database));
 };

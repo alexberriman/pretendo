@@ -1,6 +1,6 @@
 # 📦 Resources
 
-Resources are the core building blocks of your API. This document explains how to define, configure, and work with resources in JSON REST Mock API.
+Resources are the core building blocks of your API. This document explains how to define, configure, and work with resources in Pretendo.
 
 **← [API Design](./api-design.md) | [Table of Contents](./README.md) | [Next: Relationships →](./relationships.md)**
 
@@ -8,7 +8,7 @@ Resources are the core building blocks of your API. This document explains how t
 
 In REST API terminology, a resource is a specific type of object or entity that your API exposes. Examples of resources include users, products, orders, posts, comments, etc. Each resource typically corresponds to a database table in a real backend.
 
-In JSON REST Mock API, resources:
+In Pretendo, resources:
 - Have a defined schema with fields and types
 - Support full CRUD (Create, Read, Update, Delete) operations
 - Can have relationships with other resources
@@ -114,7 +114,7 @@ Some field types support special values:
 
 ## Resource Endpoints
 
-For each resource, JSON REST Mock API automatically generates these endpoints:
+For each resource, Pretendo automatically generates these endpoints:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -141,7 +141,7 @@ You can enable or disable specific endpoints for a resource:
 
 ## Polymorphic Resources
 
-JSON REST Mock API supports polymorphic resources (where one resource can be of different types):
+Pretendo supports polymorphic resources (where one resource can be of different types):
 
 ```yaml
 - name: notifications

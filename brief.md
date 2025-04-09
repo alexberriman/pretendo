@@ -1,5 +1,5 @@
 **My prompt:**
-I want to create a typescript/npm library called "json-rest-mock-api ". I want it to take as input a basic specification that describes an api data structure, and then instantiate/run an api. I want it to create an opinionated api, following the following design specifications: https://github.com/alexberriman/rest-api-design I want the specification to accept either yaml or json - it should be simple, and describe the data structure and basic api options. Examples of some options: - corsEnabled (whether to enable cors or not) And other popular apis. Its primarily going to be used as a dev tool to quickly spin up and mock apis (backends) as you're building out the frontend. The data should persist to somewhere - have it just persist to (and potentially read from) a json file for now. I want you to do research on similar libraries (i.e. json-server), what I'm trying to do,and determine the best way to structure, build it, and how it should be designed, what features it should have, etc. Eventually I want to build a UI and website on top of it.
+I want to create a typescript/npm library called "pretendo". I want it to take as input a basic specification that describes an api data structure, and then instantiate/run an api. I want it to create an opinionated api, following the following design specifications: https://github.com/alexberriman/rest-api-design I want the specification to accept either yaml or json - it should be simple, and describe the data structure and basic api options. Examples of some options: - corsEnabled (whether to enable cors or not) And other popular apis. Its primarily going to be used as a dev tool to quickly spin up and mock apis (backends) as you're building out the frontend. The data should persist to somewhere - have it just persist to (and potentially read from) a json file for now. I want you to do research on similar libraries (i.e. json-server), what I'm trying to do,and determine the best way to structure, build it, and how it should be designed, what features it should have, etc. Eventually I want to build a UI and website on top of it.
 
 ###### ChatGPT said:
 
@@ -18,7 +18,7 @@ Once I have this info, I’ll explore existing tools, key differentiators, desig
 
 ###### ChatGPT said:
 
-Great. I’ll research similar tools like `json-server`, mock API generators, and how they compare to what you're envisioning with `json-rest-mock-api`. I’ll also explore best practices for building TypeScript/NPM libraries, how to structure the spec file (YAML/JSON), how to persist data to files, and which features like auth mocking, error simulation, and relationships are commonly supported.
+Great. I’ll research similar tools like `json-server`, mock API generators, and how they compare to what you're envisioning with `pretendo`. I’ll also explore best practices for building TypeScript/NPM libraries, how to structure the spec file (YAML/JSON), how to persist data to files, and which features like auth mocking, error simulation, and relationships are commonly supported.
 
 I’ll get back to you with a comprehensive breakdown of:
 
@@ -31,11 +31,11 @@ Hang tight, I’ll report back soon.
 
 Research completed in 7m · 16 sources
 
-# Designing the **json-rest-mock-api** Library – A Mock REST API Server
+# Designing the **pretendo** Library – A Mock REST API Server
 
 ## Overview and Goals
 
-Front-end developers often need a quick backend API to develop and test against, without waiting for a real server. **json-rest-mock-api** is envisioned as a TypeScript library (published to NPM) that can spin up a mock RESTful API server with minimal effort. The library will be **spec-driven** – given a simple YAML/JSON specification describing data models and options, it will automatically generate a fully functional REST API (CRUD endpoints, query capabilities, etc.) following opinionated REST design guidelines​
+Front-end developers often need a quick backend API to develop and test against, without waiting for a real server. **pretendo** is envisioned as a TypeScript library (published to NPM) that can spin up a mock RESTful API server with minimal effort. The library will be **spec-driven** – given a simple YAML/JSON specification describing data models and options, it will automatically generate a fully functional REST API (CRUD endpoints, query capabilities, etc.) following opinionated REST design guidelines​
 
 [github.com](https://github.com/alexberriman/rest-api-design#:~:text=Sorting)
 
@@ -65,11 +65,11 @@ Front-end developers often need a quick backend API to develop and test against,
 - **Data Persistence:** By default, data should persist to a local JSON file so that changes (POST/PUT/DELETE operations) are saved. This ensures the mock server state is retained across restarts (useful during development).
 - **Reusability & Integration:** Provide both a CLI tool and a programmatic API. This allows using the mock server as a standalone service (via CLI) or embedding it in tests or scripts (by importing the library in code). Following TypeScript library best practices will make it easy to maintain and extend.
 
-In the sections below, we compare existing solutions to gather insights, outline the key features to prioritize, discuss implementation details (including project structure and libraries), and explore how **json-rest-mock-api** could evolve (e.g. adding a UI or hosted service).
+In the sections below, we compare existing solutions to gather insights, outline the key features to prioritize, discuss implementation details (including project structure and libraries), and explore how **pretendo** could evolve (e.g. adding a UI or hosted service).
 
 ## Comparison of Existing Mock API Tools
 
-Several tools already exist for mocking REST APIs. We analyze a few popular ones to understand their capabilities, limitations, and what gaps **json-rest-mock-api** should fill or improve upon.
+Several tools already exist for mocking REST APIs. We analyze a few popular ones to understand their capabilities, limitations, and what gaps **pretendo** should fill or improve upon.
 
 ### **JSON Server (typicode/json-server)**
 
@@ -209,11 +209,11 @@ Several tools already exist for mocking REST APIs. We analyze a few popular ones
 
 [stackshare.io](https://stackshare.io/json-server/alternatives#:~:text=JSON%20Server%20is%20a%20lightweight,authentication%2C%20and%20limited%20performance%20capabilities)
 
-. Mirage/MSW offer rich customization but aren’t standalone servers. OpenAPI-based tools require heavy specs and don’t easily persist data state. This gap is where **json-rest-mock-api** can shine: by combining the **ease-of-use of JSON Server** (simple config, instant API) with more **advanced features (auth simulation, relationships, error/latency toggles)** and an **opinionated design** for consistency. It should give developers a one-stop tool that is both _declarative_ (config-based) and _extensible_ (through code or options if needed).
+. Mirage/MSW offer rich customization but aren’t standalone servers. OpenAPI-based tools require heavy specs and don’t easily persist data state. This gap is where **pretendo** can shine: by combining the **ease-of-use of JSON Server** (simple config, instant API) with more **advanced features (auth simulation, relationships, error/latency toggles)** and an **opinionated design** for consistency. It should give developers a one-stop tool that is both _declarative_ (config-based) and _extensible_ (through code or options if needed).
 
-## Key Features and Priorities for **json-rest-mock-api**
+## Key Features and Priorities for **pretendo**
 
-Based on the requirements and the shortcomings of existing tools, these are the key features **json-rest-mock-api** should prioritize:
+Based on the requirements and the shortcomings of existing tools, these are the key features **pretendo** should prioritize:
 
 - **1. YAML/JSON Spec as Input:** The library will accept a specification file (YAML or JSON format) that defines the data models and configuration options for the mock API. This spec should be easy to write and human-readable. For example, a spec might list the resource types (entities), their fields, relationships, and global options (like `corsEnabled: true`). Using YAML allows comments and better readability, whereas JSON is readily machine-readable – supporting both gives flexibility. The goal is **declarative configuration**: no coding needed to set up the API.
 - **2. Automatic CRUD Endpoint Generation:** For each resource defined in the spec, the library will generate standard RESTful endpoints following conventional patterns. This includes:
@@ -233,7 +233,7 @@ Based on the requirements and the shortcomings of existing tools, these are the 
 
     .
 
-- **3. Relationship Handling (Linked Resources):** A major feature will be first-class support for defining relationships between entities. In the spec, a user might declare that a `Post` has many `Comments` (one-to-many), or that `User` and `Group` have a many-to-many relationship through `Memberships`, etc. **json-rest-mock-api** can then:
+- **3. Relationship Handling (Linked Resources):** A major feature will be first-class support for defining relationships between entities. In the spec, a user might declare that a `Post` has many `Comments` (one-to-many), or that `User` and `Group` have a many-to-many relationship through `Memberships`, etc. **pretendo** can then:
 
   - **Auto-generate nested routes** for convenience. For example, if `comments` are related to `posts`, enable routes like `GET /posts/{id}/comments` to fetch all comments for a given post (much like JSON Server’s feature​
 
@@ -336,7 +336,7 @@ Based on the requirements and the shortcomings of existing tools, these are the 
 
     [miragejs.com](https://miragejs.com/docs/comparison-with-other-tools/#:~:text=,will%20match%20your%20production%20API)
 
-    , **json-rest-mock-api** will provide rich querying out-of-the-box, but in a more configurable and standardized way.
+    , **pretendo** will provide rich querying out-of-the-box, but in a more configurable and standardized way.
 
 - **5. CORS Support:** Because front-end devs will typically call this mock API from a web app running on a different port/domain, **Cross-Origin Resource Sharing (CORS)** must be handled. We will include an option `corsEnabled` in the spec (likely true by default for convenience). If enabled, the server will send appropriate `Access-Control-Allow-Origin` headers (possibly `*` or a configurable origin) to allow requests from the browser. This can be implemented easily via middleware (e.g. using the `cors` npm package in Express). Having a toggle is useful in case someone wants to test a scenario without CORS (though rare).
 - **6. Authentication & Authorization Simulation:** To go beyond existing mocks, our tool should optionally simulate auth. This could be as simple or as complex as needed, but the initial implementation might include:
@@ -355,7 +355,7 @@ Based on the requirements and the shortcomings of existing tools, these are the 
 
     , adding this feature will be a major improvement for users who want to test login flows or protected content.
 
-- **7. Configurable Network Latency:** In development, it’s often useful to simulate slow network responses (to see loading spinners, etc.). **json-rest-mock-api** will include an option to introduce artificial delay in responses. Possible configurations:
+- **7. Configurable Network Latency:** In development, it’s often useful to simulate slow network responses (to see loading spinners, etc.). **pretendo** will include an option to introduce artificial delay in responses. Possible configurations:
 
   - A global fixed delay (e.g. `latency: 300` to delay every response by 300ms).
   - A random delay range (e.g. `latency: "100-500"` meaning each response takes between 100 and 500 ms).
@@ -405,14 +405,14 @@ Based on the requirements and the shortcomings of existing tools, these are the 
 
 - **10. CLI Tool and Programmable API:** One of the priorities is to make this tool usable in different contexts:
 
-  - **CLI Usage:** The library will ship with a command-line interface, likely invoked as `json-rest-mock-api` (when installed globally or via npx). The CLI command would accept arguments such as the path to the spec file (`-s schema.yaml`), the port to run on (`-p 3000`), and flags for any toggles (e.g. `--watch` for auto-reload, `--quiet` for less logging, etc.). This allows any developer to quickly run the mock server by pointing at a spec file – no coding required, just a terminal command. The CLI will print helpful info like available routes, and perhaps log requests to the console for debugging.
+  - **CLI Usage:** The library will ship with a command-line interface, likely invoked as `pretendo` (when installed globally or via npx). The CLI command would accept arguments such as the path to the spec file (`-s schema.yaml`), the port to run on (`-p 3000`), and flags for any toggles (e.g. `--watch` for auto-reload, `--quiet` for less logging, etc.). This allows any developer to quickly run the mock server by pointing at a spec file – no coding required, just a terminal command. The CLI will print helpful info like available routes, and perhaps log requests to the console for debugging.
   - **Library (API) Usage:** In addition, the package can be required in Node applications. For example, a developer could do:
 
     js
 
     CopyEdit
 
-    `import { createMockServer } from  'json-rest-mock-api'; const server = createMockServer(specObject, options);
+    `import { createMockServer } from  'pretendo'; const server = createMockServer(specObject, options);
 server.start(3000);`
 
     This would allow integrating the mock server into a larger Node app or tests. For instance, you might start the mock API programmatically as part of an end-to-end test suite, then run your test cases, and shut it down afterward. The library API should expose functions or classes to load a spec (from file or object), and either produce an Express app instance or start an HTTP server directly. We might also allow injection of custom route handlers via the API for advanced use (so users can override or extend certain endpoints with custom logic).
@@ -443,7 +443,7 @@ server.start(3000);`
 
 ## Implementation Strategy and Technical Design
 
-Designing **json-rest-mock-api** will involve choosing the right libraries and structuring the code for maintainability. Below are suggestions for the implementation approach, including the technology stack, project structure, and how to realize each feature:
+Designing **pretendo** will involve choosing the right libraries and structuring the code for maintainability. Below are suggestions for the implementation approach, including the technology stack, project structure, and how to realize each feature:
 
 - **Tech Stack & Libraries:** We will build on proven Node.js libraries:
 
@@ -486,7 +486,7 @@ Designing **json-rest-mock-api** will involve choosing the right libraries and s
   - We can have a `src/` directory with modules such as:
 
     - `src/index.ts` – main entry that might export the programmatic API (functions/classes).
-    - `src/cli.ts` – the CLI entry point script (this will import from index or other modules, parse args, and invoke the server). We will set up the package.json “bin” field to point to the compiled `cli.js` so that `json-rest-mock-api` command runs this.
+    - `src/cli.ts` – the CLI entry point script (this will import from index or other modules, parse args, and invoke the server). We will set up the package.json “bin” field to point to the compiled `cli.js` so that `pretendo` command runs this.
     - `src/server.ts` – perhaps a module containing the code to create and configure the Express server (setting up middleware, routes).
     - `src/routes.ts` – logic for generating routes from the spec. For example, a function `registerRoutes(app, spec, db)` that iterates over spec resources and sets up Express routes and handlers for each CRUD operation. This could also handle linking routes for relationships (setting up `/parent/:id/children` routes).
     - `src/database.ts` – a wrapper around LowDB initialization and any helper for querying. It could load the JSON file, set up default structure if file empty, etc. Might also include functions to apply filters or sorts (though those could be done directly in route handlers using LowDB/Lodash).
@@ -560,7 +560,7 @@ Designing **json-rest-mock-api** will involve choosing the right libraries and s
 
     . We could namespace our special query params with a prefix if needed (like `$expand` or similar) to distinguish, but that adds noise. Perhaps document that `expand`, `fields`, `sortBy`, etc., are reserved.
 
-- **Differentiation and Improvements:** By designing it this way, **json-rest-mock-api** will differentiate itself:
+- **Differentiation and Improvements:** By designing it this way, **pretendo** will differentiate itself:
 
   - It will be **config-driven like JSON Server**, but more configurable (supporting YAML spec with relationships and options) and with more features baked in (auth, etc., which JSON Server lacks​
 
@@ -580,7 +580,7 @@ Designing **json-rest-mock-api** will involve choosing the right libraries and s
 
 ## Future Evolution and Enhancements
 
-Once the core library is working, there are several directions to expand **json-rest-mock-api** to add more value:
+Once the core library is working, there are several directions to expand **pretendo** to add more value:
 
 - **Interactive UI / Admin Dashboard:** A natural evolution is to build a UI on top of the mock server. This could be a web-based interface (or even an Electron app) where users can **create and edit the spec visually** (similar to Mockoon’s approach). The UI could list the resources, allow you to add fields and relationships with form inputs instead of editing YAML by hand. It could also serve as an **admin panel to view and modify the data** at runtime. For example, once the server is running, the UI could connect (via an internal API) to list current records in each resource, and allow the user to edit or add records through a simple interface. This would be extremely handy for testers or non-developers to tweak the mock data on the fly. A web UI might run on another port (or under a special route like `/__admin`) and communicate with the mock server (this introduces authentication concerns for the admin interface itself, but since it’s local dev, it might be fine open or with a simple password).
 - **Hosted Mock API Service:** With some adjustments, this library could power a hosted service where users upload their specs and get a persistent mock API available on the cloud. Similar services exist (MockAPI.io, Postman Cloud mocks), but having our own could be beneficial for certain workflows. This would involve additional features like user accounts, saving specs to a database, and spawning isolated instances per user. While likely outside the scope of the library itself, we can design the library such that it’s **deployable on cloud easily**. For instance, ensuring it works statelessly with an external persistent store would allow running multiple instances behind a load balancer. In the near term, simply **containerizing** the app (providing a Dockerfile) would let users deploy their mock server to a remote server for shareable access. A lightweight container that runs the CLI with a given spec could be used in CI environments or shared dev servers.
@@ -599,7 +599,7 @@ Once the core library is working, there are several directions to expand **json-
 
 ## Conclusion
 
-In summary, **json-rest-mock-api** is poised to be a comprehensive solution for spinning up mock REST APIs for development. By learning from existing tools – offering the ease and speed of JSON Server​
+In summary, **pretendo** is poised to be a comprehensive solution for spinning up mock REST APIs for development. By learning from existing tools – offering the ease and speed of JSON Server​
 
 [stackshare.io](https://stackshare.io/json-server/alternatives#:~:text=What%20is%20JSON%20Server%20and,what%20are%20its%20top%20alternatives)
 
@@ -611,7 +611,7 @@ In summary, **json-rest-mock-api** is poised to be a comprehensive solution for 
 
 The implementation will leverage robust Node.js libraries (Express, LowDB, etc.) and follow best practices for a reusable TypeScript library (modular structure, CLI + API exposure, thorough testing). As the project grows, enhancements like a user-friendly UI or a cloud-hosted service could further amplify its usefulness, making mock API servers not just a local development tool but a shareable resource for teams.
 
-With clear documentation, a focus on developer experience, and alignment to an opinionated REST design ethos, **json-rest-mock-api** can become a go-to tool for quickly crafting realistic APIs and enabling developers to build applications faster and with more confidence. The combination of convenience and configurability will set it apart from existing solutions, filling the gaps and evolving as a powerful mock API ecosystem of its own.
+With clear documentation, a focus on developer experience, and alignment to an opinionated REST design ethos, **pretendo** can become a go-to tool for quickly crafting realistic APIs and enabling developers to build applications faster and with more confidence. The combination of convenience and configurability will set it apart from existing solutions, filling the gaps and evolving as a powerful mock API ecosystem of its own.
 
 **Sources:**
 

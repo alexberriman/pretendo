@@ -311,14 +311,17 @@ export const createDatabaseService = (
   };
 
   // Get database statistics
-  const getStats = (): Record<string, { count: number; lastModified: number }> => {
+  const getStats = (): Record<
+    string,
+    { count: number; lastModified: number }
+  > => {
     const stats: Record<string, { count: number; lastModified: number }> = {};
-    
+
     // Get all resources
     for (const resource of initialConfig.resources) {
       const resourceName = resource.name;
       const data = store.getData(resourceName);
-      
+
       if (data.ok) {
         stats[resourceName] = {
           count: data.value.length,
@@ -331,7 +334,7 @@ export const createDatabaseService = (
         };
       }
     }
-    
+
     return stats;
   };
 
