@@ -28,6 +28,7 @@ export default [
       "vitest.integration.config.ts",
       "vitest.setup.ts",
       "tests/**/*.ts",
+      "src/**/*.test.ts",
     ],
   },
   {
@@ -36,7 +37,7 @@ export default [
       parser: typescriptParser,
       parserOptions: {
         ...commonParserOptions,
-        project: ["./tsconfig.json", "./tsconfig.test.json"],
+        project: ["./tsconfig.json"],
         tsconfigRootDir: ".",
       },
       globals: {},
@@ -63,7 +64,7 @@ export default [
       parser: typescriptParser,
       parserOptions: {
         ...commonParserOptions,
-        project: ["./tsconfig.json", "./tsconfig.test.json"],
+        project: ["./tsconfig.json"],
         tsconfigRootDir: ".",
       },
       globals: {},
@@ -81,40 +82,6 @@ export default [
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": "off", // Allow console.log in CLI directory
-      "import/extensions": "off",
-    },
-  },
-  {
-    files: ["src/**/*.test.ts"],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ...commonParserOptions,
-        project: ["./tsconfig.json", "./tsconfig.test.json"],
-        tsconfigRootDir: ".",
-      },
-      globals: {
-        describe: "readonly",
-        it: "readonly",
-        expect: "readonly",
-        beforeEach: "readonly",
-        afterEach: "readonly",
-        vi: "readonly",
-      },
-    },
-    plugins: {
-      "@typescript-eslint": typescript,
-      prettier: prettier,
-      import: importPlugin,
-    },
-    rules: {
-      ...typescript.configs.recommended.rules,
-      ...prettier.configs.recommended.rules,
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
-      "no-console": ["warn", { allow: ["warn", "error"] }],
       "import/extensions": "off",
     },
   },
