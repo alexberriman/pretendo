@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import { ApiOptions, DatabaseService } from "../../types/index.js";
 import {
   createResourceHandler,
@@ -26,18 +26,22 @@ export const createRoutes = (
   // CRUD routes for resources
   router.get(
     "/:resource",
-    getResourcesHandler(db, defaultPageSize, maxPageSize),
+    getResourcesHandler(db, defaultPageSize, maxPageSize) as RequestHandler,
   );
-  router.get("/:resource/:id", getResourceByIdHandler(db));
-  router.post("/:resource", createResourceHandler(db));
-  router.put("/:resource/:id", updateResourceHandler(db));
-  router.patch("/:resource/:id", patchResourceHandler(db));
-  router.delete("/:resource/:id", deleteResourceHandler(db));
+  router.get("/:resource/:id", getResourceByIdHandler(db) as RequestHandler);
+  router.post("/:resource", createResourceHandler(db) as RequestHandler);
+  router.put("/:resource/:id", updateResourceHandler(db) as RequestHandler);
+  router.patch("/:resource/:id", patchResourceHandler(db) as RequestHandler);
+  router.delete("/:resource/:id", deleteResourceHandler(db) as RequestHandler);
 
   // Relationship routes
   router.get(
     "/:resource/:id/:relationship",
-    getRelatedResourcesHandler(db, defaultPageSize, maxPageSize),
+    getRelatedResourcesHandler(
+      db,
+      defaultPageSize,
+      maxPageSize,
+    ) as RequestHandler,
   );
 
   // Auth routes
@@ -49,14 +53,20 @@ export const createRoutes = (
       ? authEndpoint.substring(1)
       : authEndpoint;
 
-    router.post(`/${authPath}`, loginHandler(authService, options));
-    router.post("/auth/logout", logoutHandler(authService, options));
+    router.post(
+      `/${authPath}`,
+      loginHandler(authService, options) as RequestHandler,
+    );
+    router.post(
+      "/auth/logout",
+      logoutHandler(authService, options) as RequestHandler,
+    );
   }
 
   // Admin routes
-  router.post("/__reset", resetHandler(db));
-  router.post("/__backup", backupHandler(db));
-  router.post("/__restore", restoreHandler(db));
+  router.post("/__reset", resetHandler(db) as RequestHandler);
+  router.post("/__backup", backupHandler(db) as RequestHandler);
+  router.post("/__restore", restoreHandler(db) as RequestHandler);
 
   return router;
 };

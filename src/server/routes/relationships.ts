@@ -60,7 +60,8 @@ const createPaginationMeta = (
 
 // Get base URL from request
 const getBaseUrl = (req: Request): string => {
-  return `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
+  const host = req.headers.host || "localhost";
+  return `${req.protocol}://${host}${req.baseUrl}${req.path}`;
 };
 
 // Handler for GET /:resource/:id/:relationship
@@ -174,8 +175,8 @@ export const getRelatedResourcesHandler = (
       .map(([rel, url]) => `<${url}>; rel="${rel}"`)
       .join(", ");
 
-    res.set("Link", linkHeader);
-    res.set("X-Total-Count", totalCount.toString());
+    res.setHeader("Link", linkHeader);
+    res.setHeader("X-Total-Count", totalCount.toString());
 
     // Return data with metadata
     res.json({

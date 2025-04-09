@@ -31,14 +31,18 @@ export const createServer = (
   // Create Express app
   const app: Express = express();
 
+  // Remove the "X-Powered-By: Express" header and add custom header
+  app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    res.setHeader("X-Powered-By", "Pretendo");
+    next();
+  });
+
   // Initialize authentication service
   const authService = new AuthService(options);
 
   // Configure server
   const initializeServer = (): Express => {
-    // Clear existing routes and middleware
-    app._router = undefined as unknown;
-
     // Add logging middleware
     if (options.logRequests !== false) {
       app.use(morgan("dev"));
@@ -94,11 +98,13 @@ export const createServer = (
 
       // Create HTTP server
       return new Promise<Result<void, Error>>((resolve) => {
-        httpServer = app.listen(port, host, () => {
+        httpServer = app.listen(port, host);
+
+        httpServer.once("listening", () => {
           resolve(ok(undefined));
         });
 
-        httpServer.on("error", (error) => {
+        httpServer.once("error", (error) => {
           httpServer = null;
           resolve(err(error));
         });
