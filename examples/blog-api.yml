@@ -1,0 +1,223 @@
+# Blog API Example Configuration
+# This is a complete example of a blog API with users, posts, comments, and categories
+
+resources:
+  # Users resource
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: username
+        type: string
+      - name: email
+        type: string
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+      - name: role
+        type: string
+        defaultValue: user
+      - name: createdAt
+        type: date
+    relationships:
+      - type: hasMany
+        resource: posts
+        foreignKey: authorId
+      - type: hasMany
+        resource: comments
+        foreignKey: authorId
+
+  # Posts resource
+  - name: posts
+    fields:
+      - name: id
+        type: number
+      - name: title
+        type: string
+      - name: content
+        type: string
+      - name: authorId
+        type: number
+      - name: status
+        type: string
+        defaultValue: draft
+      - name: published
+        type: boolean
+        defaultValue: false
+      - name: publishedAt
+        type: date
+      - name: createdAt
+        type: date
+      - name: updatedAt
+        type: date
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: authorId
+      - type: hasMany
+        resource: comments
+        foreignKey: postId
+      - type: manyToMany
+        resource: categories
+        foreignKey: postId
+        targetKey: categoryId
+        through: postCategories
+
+  # Comments resource
+  - name: comments
+    fields:
+      - name: id
+        type: number
+      - name: content
+        type: string
+      - name: postId
+        type: number
+      - name: authorId
+        type: number
+      - name: createdAt
+        type: date
+    relationships:
+      - type: belongsTo
+        resource: posts
+        foreignKey: postId
+      - type: belongsTo
+        resource: users
+        foreignKey: authorId
+
+  # Categories resource
+  - name: categories
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+      - name: slug
+        type: string
+      - name: description
+        type: string
+    relationships:
+      - type: manyToMany
+        resource: posts
+        foreignKey: categoryId
+        targetKey: postId
+        through: postCategories
+
+  # Junction table for posts and categories
+  - name: postCategories
+    fields:
+      - name: id
+        type: number
+      - name: postId
+        type: number
+      - name: categoryId
+        type: number
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  auth:
+    enabled: true
+    tokenExpiration: 3600
+    users:
+      - username: admin
+        password: password
+        role: admin
+      - username: user
+        password: password
+        role: user
+  latency:
+    enabled: true
+    min: 100
+    max: 500
+  defaultPageSize: 10
+  maxPageSize: 100
+
+# Initial data
+data:
+  users:
+    - id: 1
+      username: admin
+      email: admin@example.com
+      firstName: Admin
+      lastName: User
+      role: admin
+      createdAt: "2023-01-01T00:00:00Z"
+    - id: 2
+      username: user
+      email: user@example.com
+      firstName: Regular
+      lastName: User
+      role: user
+      createdAt: "2023-01-02T00:00:00Z"
+
+  categories:
+    - id: 1
+      name: Technology
+      slug: technology
+      description: Tech-related posts
+    - id: 2
+      name: Travel
+      slug: travel
+      description: Travel-related posts
+    - id: 3
+      name: Food
+      slug: food
+      description: Food and recipes
+
+  posts:
+    - id: 1
+      title: Getting Started with REST APIs
+      content: This is a post about REST APIs and how to use them effectively.
+      authorId: 1
+      status: published
+      published: true
+      publishedAt: "2023-01-10T12:00:00Z"
+      createdAt: "2023-01-09T10:00:00Z"
+      updatedAt: "2023-01-10T12:00:00Z"
+    - id: 2
+      title: My Travel Adventures
+      content: This is a post about my recent travel experiences.
+      authorId: 2
+      status: published
+      published: true
+      publishedAt: "2023-01-15T14:30:00Z"
+      createdAt: "2023-01-14T09:00:00Z"
+      updatedAt: "2023-01-15T14:30:00Z"
+    - id: 3
+      title: Draft Post
+      content: This is a draft post that is not yet published.
+      authorId: 1
+      status: draft
+      published: false
+      createdAt: "2023-01-20T08:45:00Z"
+      updatedAt: "2023-01-20T08:45:00Z"
+
+  comments:
+    - id: 1
+      content: Great post! Very informative.
+      postId: 1
+      authorId: 2
+      createdAt: "2023-01-10T14:30:00Z"
+    - id: 2
+      content: Thanks for sharing!
+      postId: 1
+      authorId: 2
+      createdAt: "2023-01-11T09:15:00Z"
+    - id: 3
+      content: Sounds like an amazing trip!
+      postId: 2
+      authorId: 1
+      createdAt: "2023-01-16T10:45:00Z"
+
+  postCategories:
+    - id: 1
+      postId: 1
+      categoryId: 1
+    - id: 2
+      postId: 2
+      categoryId: 2
+    - id: 3
+      postId: 2
+      categoryId: 3

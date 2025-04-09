@@ -5,6 +5,9 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "json-rest-mock-api": "./dist/cjs/cli/index.js"
+  },
   "exports": {
     ".": {
       "import": {
@@ -37,21 +40,63 @@
     "check": "npm run lint:all && npm run format:check && npm run test",
     "check:full": "npm run lint:all && npm run type-check && npm run type-check:tests && npm run format:check && npm run test",
     "prepare": "npm run build:clean",
-    "prepublishOnly": "npm run check"
+    "prepublishOnly": "npm run check",
+    "start": "node dist/cjs/cli/index.js",
+    "dev": "tsx src/cli/index.ts start examples/simple-api.yml",
+    "dev:blog": "tsx src/cli/index.ts start examples/blog-api.yml",
+    "dev:ecommerce": "tsx src/cli/index.ts start examples/e-commerce-api.yml"
   },
-  "keywords": [],
+  "keywords": [
+    "api",
+    "mock",
+    "rest",
+    "json",
+    "server",
+    "frontend",
+    "development",
+    "testing"
+  ],
   "author": "Alex Berriman <alexb@bezz.com.au>",
   "license": "ISC",
-  "description": "",
+  "description": "A flexible mock REST API server for rapid frontend development and testing",
   "repository": {
     "type": "git",
     "url": "https://github.com/alexberriman/json-rest-mock-api.git"
   },
-  "files": [],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "examples"
+  ],
   "sideEffects": false,
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "figlet": "^1.8.0",
+    "inquirer": "^9.3.7",
+    "inquirer-autocomplete-prompt": "^3.0.1",
+    "js-yaml": "^4.1.0",
+    "lodash-es": "^4.17.21",
+    "lowdb": "^7.0.1",
+    "morgan": "^1.10.0"
+  },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
+    "@types/blessed": "^0.1.25",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/js-yaml": "^4.0.9",
+    "@types/lodash-es": "^4.17.12",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^22.14.0",
+    "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.29.1",
     "@typescript-eslint/parser": "^8.29.1",
     "eslint": "^9.24.0",
@@ -60,6 +105,9 @@
     "eslint-plugin-prettier": "^5.2.6",
     "prettier": "^3.5.3",
     "semantic-release": "^22.0.12",
+    "supertest": "^6.3.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "vitest": "^3.1.1"
   }

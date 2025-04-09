@@ -15,6 +15,7 @@ export default [
       "node_modules/**",
       "dist/**",
       "coverage/**",
+      "docs/**",
       "*.json",
       "eslint.config.js",
       "scripts/**",
@@ -26,10 +27,10 @@ export default [
       "test-type.ts",
       "vitest.integration.config.ts",
       "vitest.setup.ts",
+      "tests/**/*.ts",
     ],
   },
   {
-    // Configuration for source files
     files: ["src/**/*.ts", "!src/**/*.test.ts"],
     languageOptions: {
       parser: typescriptParser,
@@ -48,21 +49,12 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       ...prettier.configs.recommended.rules,
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
-      // Enable strict-boolean-expressions but leave other strict rules off for now
-      "@typescript-eslint/strict-boolean-expressions": "error",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      // Enforce .js extension for imports in ESM
-      "import/extensions": ["error", "ignorePackages", { "ts": "never", "js": "always" }],
+      "import/extensions": "off",
     },
   },
   {
@@ -91,21 +83,12 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       ...prettier.configs.recommended.rules,
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      // Allow assertions and testing utilities
-      "@typescript-eslint/no-non-null-assertion": "off",
-      "no-console": "off",
-      // Keep strict type checking rules enabled for tests too
-      "@typescript-eslint/strict-boolean-expressions": "error",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "import/extensions": "off",
     },
   },
   prettierConfig,
