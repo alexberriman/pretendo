@@ -4,7 +4,7 @@
   
   <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -20px 0;" />
   
-  <h3>💻 One command to start:</h3>
+  <h4>🏀 Have a play:</h4>
   <code>npx pretendo start repo://simple-api.yml</code>
 </div>
 
@@ -408,6 +408,7 @@ npx pretendo start repo://e-commerce-api.yml
 ```
 
 Example specifications:
+
 - [Simple API](./examples/simple-api.yml)
 - [Blog API](./examples/blog-api.yml)
 - [E-commerce API](./examples/e-commerce-api.yml)
