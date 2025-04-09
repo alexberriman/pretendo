@@ -4,9 +4,8 @@
   
   <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -20px 0;" />
   
-  ```bash
-  npx pretendo start repo://simple-api.yml
-  ```
+  <h3>💻 One command to start:</h3>
+  <code>npx pretendo start repo://simple-api.yml</code>
 </div>
 
 ## 🌟 Introduction
