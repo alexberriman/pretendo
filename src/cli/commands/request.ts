@@ -2,7 +2,8 @@ import { Server } from "../../types/index.js";
 import { theme, formatSection } from "../ui/theme.js";
 import http from "http";
 import https from "https";
-import url from "url";
+// We're not using the url module directly, but keeping it for future use
+import _url from "url";
 
 export const handleRequest = async (
   args: string[],
@@ -67,7 +68,8 @@ export const handleRequest = async (
     try {
       const parsed = JSON.parse(response.body);
       console.log(JSON.stringify(parsed, null, 2));
-    } catch (error) {
+    } catch {
+      // If not JSON, just print raw body
       console.log(response.body);
     }
   } catch (error) {

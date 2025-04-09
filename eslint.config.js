@@ -31,7 +31,7 @@ export default [
     ],
   },
   {
-    files: ["src/**/*.ts", "!src/**/*.test.ts"],
+    files: ["src/**/*.ts", "!src/**/*.test.ts", "!src/cli/**/*.ts"],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -54,6 +54,33 @@ export default [
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": ["warn", { allow: ["warn", "error"] }],
+      "import/extensions": "off",
+    },
+  },
+  {
+    files: ["src/cli/**/*.ts"],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ...commonParserOptions,
+        project: ["./tsconfig.json", "./tsconfig.test.json"],
+        tsconfigRootDir: ".",
+      },
+      globals: {},
+    },
+    plugins: {
+      "@typescript-eslint": typescript,
+      prettier: prettier,
+      import: importPlugin,
+    },
+    rules: {
+      ...typescript.configs.recommended.rules,
+      ...prettier.configs.recommended.rules,
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "no-console": "off", // Allow console.log in CLI directory
       "import/extensions": "off",
     },
   },

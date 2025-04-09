@@ -63,8 +63,12 @@ export const errorHandlerMiddleware = (
   err: Error,
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   console.error(err.stack);
 
   const errorResponse: ErrorResponse = {
