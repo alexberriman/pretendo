@@ -31,12 +31,49 @@ program
   .description("A flexible REST API mock server for frontend development")
   .version(version);
 
+// Add a command to list available repository examples
+program
+  .command("examples")
+  .description("List available example API specifications from the repository")
+  .action(() => {
+    logInfo(chalk.blue.bold("\n📋 Available Example API Specifications\n"));
+
+    // List the examples with their descriptions
+    const examples = [
+      {
+        name: "simple-api.yml",
+        description: "A simple API with basic CRUD operations",
+      },
+      {
+        name: "blog-api.yml",
+        description: "A blog API with posts, comments, and users",
+      },
+      {
+        name: "e-commerce-api.yml",
+        description: "An e-commerce API with products, orders, and customers",
+      },
+    ];
+
+    examples.forEach((example) => {
+      logInfo(chalk.yellow(`repo://${example.name}`));
+      logInfo(`  ${chalk.gray(example.description)}`);
+      logInfo("");
+    });
+
+    // Show usage instructions
+    logInfo(chalk.blue.bold("Usage:"));
+    logInfo(`  pretendo start repo://EXAMPLE_NAME`);
+    logInfo(
+      `  Example: ${chalk.green("pretendo start repo://simple-api.yml")}\n`,
+    );
+  });
+
 program
   .command("start")
   .description("Start the mock API server")
   .argument(
     "<file>",
-    "Path or URL to the API specification file (YAML or JSON)",
+    "Path or URL to the API specification file (YAML or JSON). Use repo:// prefix to load from repository examples.",
   )
   .option("-p, --port <number>", "Port to run the server on")
   .option("-h, --host <string>", "Host to run the server on")
@@ -53,11 +90,21 @@ program
   .action(async (file: string, options: Record<string, unknown>) => {
     try {
       // Import required functions
-      const { isUrl, isGitHubUrl } = await import("../config/parser.js");
+      const { isUrl, isGitHubUrl, isRepoUrl, convertRepoUrlToGitHubUrl } =
+        await import("../config/parser.js");
 
-      // Check if file is a URL
+      // Check if file is a URL or a repo URL
       let filePathOrUrl = file;
-      if (isUrl(file)) {
+
+      if (isRepoUrl(file)) {
+        // Convert repo URL to GitHub URL for display purposes
+        const githubUrl = convertRepoUrlToGitHubUrl(file);
+        logInfo(chalk.blue("Loading API specification from repository:"), file);
+        logInfo(chalk.gray(`(Using GitHub URL: ${githubUrl})`));
+
+        // Keep the repo URL for processing
+        filePathOrUrl = file;
+      } else if (isUrl(file)) {
         const isGitHub = isGitHubUrl(file);
         const skipPrompt = options.prompt === false || isGitHub;
 
