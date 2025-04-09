@@ -1,5 +1,4 @@
 import express, { Express, Request, Response } from "express";
-import morgan from "morgan";
 import http from "http";
 import {
   ApiConfig,
@@ -16,6 +15,8 @@ import {
   createErrorSimulationMiddleware,
   createLatencyMiddleware,
   errorHandlerMiddleware,
+  createLoggerMiddleware,
+  logManager,
 } from "./middleware/index.js";
 import { createRoutes } from "./routes/index.js";
 
@@ -44,9 +45,7 @@ export const createServer = (
   // Configure server
   const initializeServer = (): Express => {
     // Add logging middleware
-    if (options.logRequests !== false) {
-      app.use(morgan("dev"));
-    }
+    app.use(createLoggerMiddleware(options));
 
     // Add CORS middleware
     app.use(createCorsMiddleware(options));
@@ -146,5 +145,6 @@ export const createServer = (
     start,
     stop,
     getUrl,
+    logs: logManager,
   };
 };

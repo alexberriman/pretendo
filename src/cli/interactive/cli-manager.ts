@@ -19,6 +19,7 @@ import {
   handleRestore,
   handleRequest,
   handleClear,
+  handleLogs,
 } from "../commands/index.js";
 
 export class InteractiveCliManager {
@@ -64,6 +65,10 @@ export class InteractiveCliManager {
       async (args) => await handleRequest(args, this.server),
     );
     this.commands.set("clear", async () => await handleClear());
+    this.commands.set(
+      "logs",
+      async (args) => await handleLogs(args, this.server),
+    );
     this.commands.set("exit", async () => await this.exit());
   }
 

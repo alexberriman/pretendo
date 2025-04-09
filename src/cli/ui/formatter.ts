@@ -196,6 +196,7 @@ export class OutputFormatter {
       { cmd: "routes", desc: "List all API routes" },
       { cmd: "config", desc: "Show current configuration" },
       { cmd: "stats", desc: "Show database statistics" },
+      { cmd: "logs", desc: "View and explore request logs" },
       { cmd: "reset", desc: "Reset the database to initial state" },
       { cmd: "backup", desc: "Create a database backup" },
       { cmd: "restore", desc: "Restore from the last backup" },

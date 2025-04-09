@@ -343,6 +343,37 @@ Options:
   --no-prompt            Skip download confirmation for URLs
 ```
 
+### Interactive CLI Mode
+
+When running in interactive mode, Pretendo provides a powerful command-line interface:
+
+```
+Available commands:
+  help                    Show this help message
+  routes                  List all API routes
+  request <method> <url>  Make a request to the API
+  config                  Show current configuration
+  examples                List available example specifications
+  logs [options]          View server request logs
+  stats                   Show server statistics
+  clear                   Clear the console
+  exit                    Exit the application
+```
+
+#### Special URL Schemes
+
+You can use the `repo://` URL scheme to quickly load example configurations:
+
+```bash
+# Load an example from the Pretendo repository
+pretendo start repo://simple-api.yml
+
+# This automatically expands to:
+# https://raw.githubusercontent.com/alexberriman/pretendo/refs/heads/main/examples/simple-api.yml
+```
+
+See [CLI Reference](./docs/cli-reference.md) for complete documentation.
+
 ## 📚 Examples
 
 Check the `examples` directory for complete API specifications:

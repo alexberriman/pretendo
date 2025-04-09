@@ -5,3 +5,4 @@ export * from "./stats.js";
 export * from "./data-commands.js";
 export * from "./request.js";
 export * from "./clear.js";
+export * from "./logs.js";
