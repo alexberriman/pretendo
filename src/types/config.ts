@@ -58,6 +58,7 @@ export type ApiOptions = {
   errorSimulation?: ErrorSimulationConfig;
   dbPath?: string; // Path to JSON storage file
   logRequests?: boolean;
+  logMaxEntries?: number; // Maximum number of log entries to keep in memory (default: 1000)
   allowPartialResponses?: boolean; // For fields param support
   defaultPageSize?: number; // Default page size for pagination
   maxPageSize?: number; // Maximum allowed page size

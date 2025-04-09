@@ -74,8 +74,31 @@ export type RouteHandler = (
   res: ExpressResponse,
 ) => Promise<void>;
 
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  method: string;
+  url: string;
+  status: number;
+  responseTime: number;
+  userAgent?: string;
+  ip?: string;
+}
+
+export interface LogManager {
+  getLogs: () => LogEntry[];
+  getFilteredLogs: (options: {
+    method?: string;
+    status?: number;
+    url?: string;
+    limit?: number;
+  }) => LogEntry[];
+  clearLogs: () => void;
+}
+
 export type Server = {
   start: (port?: number) => Promise<Result<void, Error>>;
   stop: () => Promise<Result<void, Error>>;
   getUrl: () => string;
+  logs: LogManager;
 };
