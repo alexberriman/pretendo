@@ -3,6 +3,10 @@
   <b>Create powerful, customizable mock REST APIs in seconds 🔥</b>
   
   <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -20px 0;" />
+  
+  ```bash
+  npx pretendo start repo://simple-api.yml
+  ```
 </div>
 
 ## 🌟 Introduction
@@ -58,6 +62,9 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 ### Installation
 
 ```bash
+# No installation needed! Run directly with npx:
+npx pretendo start repo://blog-api.yml
+
 # Global installation for CLI use
 npm install -g pretendo
 
@@ -112,14 +119,20 @@ options:
 Start the server:
 
 ```bash
-# Start with local file
+# Using npx (no installation required)
+npx pretendo start api.yml
+
+# Using installed CLI
 pretendo start api.yml
 
 # Start with remote URL (GitHub URLs auto-download)
-pretendo start https://raw.githubusercontent.com/alexberriman/pretendo/main/examples/blog-api.yml
+npx pretendo start https://raw.githubusercontent.com/alexberriman/pretendo/main/examples/blog-api.yml
+
+# Using repository shorthand
+npx pretendo start repo://blog-api.yml
 
 # Skip confirmation for non-GitHub URLs
-pretendo start https://example.com/api.yml --no-prompt
+npx pretendo start https://example.com/api.yml --no-prompt
 ```
 
 For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
@@ -365,8 +378,11 @@ Available commands:
 You can use the `repo://` URL scheme to quickly load example configurations:
 
 ```bash
-# Load an example from the Pretendo repository
-pretendo start repo://simple-api.yml
+# Load an example from the Pretendo repository (no installation needed)
+npx pretendo start repo://simple-api.yml
+
+# List all available examples
+npx pretendo examples
 
 # This automatically expands to:
 # https://raw.githubusercontent.com/alexberriman/pretendo/refs/heads/main/examples/simple-api.yml
@@ -376,8 +392,23 @@ See [CLI Reference](./docs/cli-reference.md) for complete documentation.
 
 ## 📚 Examples
 
-Check the `examples` directory for complete API specifications:
+Check the `examples` directory for complete API specifications or run them directly:
 
+```bash
+# List all available examples
+npx pretendo examples
+
+# Run the simple API example
+npx pretendo start repo://simple-api.yml
+
+# Run the blog API example
+npx pretendo start repo://blog-api.yml
+
+# Run the e-commerce API example
+npx pretendo start repo://e-commerce-api.yml
+```
+
+Example specifications:
 - [Simple API](./examples/simple-api.yml)
 - [Blog API](./examples/blog-api.yml)
 - [E-commerce API](./examples/e-commerce-api.yml)

@@ -1,0 +1,25 @@
+# Development files
+src/
+tests/
+.github/
+.vscode/
+.eslintrc*
+.prettier*
+tsconfig*
+vitest*
+.git*
+.npm*
+.editorconfig
+
+# Build artifacts
+coverage/
+.nyc_output/
+*.log
+*.tgz
+
+# IDE specific files
+.idea/
+*.code-workspace
+
+# Keep dist files
+!dist/

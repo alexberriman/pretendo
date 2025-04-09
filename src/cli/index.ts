@@ -9,7 +9,7 @@ import { createServer } from "../server/index.js";
 import { InteractiveCliManager } from "./interactive/index.js";
 
 // Define version manually since we can't directly import from package.json in ECMAScript modules
-const version = "1.0.0";
+const version = "0.1.0";
 
 // Utility function for consistent logging
 const logInfo = (message: string, ...args: unknown[]): void => {
