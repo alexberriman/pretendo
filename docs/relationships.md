@@ -1,6 +1,6 @@
 # 🔗 Relationships
 
-JSON REST Mock API provides robust support for resource relationships, allowing you to model complex data structures and efficiently retrieve related data.
+Pretendo provides robust support for resource relationships, allowing you to model complex data structures and efficiently retrieve related data.
 
 **← [Pagination](./pagination.md) | [Table of Contents](./README.md) | [Next: Configuration →](./configuration.md)**
 

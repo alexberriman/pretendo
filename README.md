@@ -1,12 +1,13 @@
-# 🚀 JSON REST Mock API
-
 <div align="center">
+  <h1>🚀 Pretendo</h1>
   <b>Create powerful, customizable mock REST APIs in seconds 🔥</b>
+  
+  <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -20px 0;" />
 </div>
 
 ## 🌟 Introduction
 
-**JSON REST Mock API** is a supercharged development tool for frontend developers who need a fully-featured REST API without the hassle of setting up a real backend.
+**Pretendo** is a supercharged development tool for frontend developers who need a fully-featured REST API without the hassle of setting up a real backend.
 
 **Why we built this:**
 
@@ -57,10 +58,10 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 
 ```bash
 # Global installation for CLI use
-npm install -g json-rest-mock-api
+npm install -g pretendo
 
 # Local project installation
-npm install --save-dev json-rest-mock-api
+npm install --save-dev pretendo
 ```
 
 See the [Installation Guide](./docs/installation.md) for more options.
@@ -110,7 +111,7 @@ options:
 Start the server:
 
 ```bash
-json-rest-mock-api start api.yml
+pretendo start api.yml
 ```
 
 For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
@@ -118,7 +119,7 @@ For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
 ### Programmatic Usage
 
 ```typescript
-import { createMockApi } from "json-rest-mock-api";
+import { createMockApi } from "pretendo";
 
 const config = {
   resources: [
@@ -320,7 +321,7 @@ See [Authentication Documentation](./docs/authentication.md) for more details.
 ## 🧑‍💻 CLI Reference
 
 ```
-json-rest-mock-api start <file> [options]
+pretendo start <file> [options]
 
 Options:
   -p, --port <number>    Port to run the server on
@@ -330,6 +331,7 @@ Options:
   --delay <ms>           Add fixed delay to all responses
   --error-rate <rate>    Add random errors (0-1 probability)
   --reset                Reset database before starting
+  --no-interactive       Disable interactive CLI mode
 ```
 
 ## 📚 Examples

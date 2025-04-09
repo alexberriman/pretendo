@@ -29,7 +29,7 @@ const logError = (message: string, ...args: unknown[]): void => {
 const program = new Command();
 
 program
-  .name("json-rest-mock-api")
+  .name("pretendo")
   .description("A flexible REST API mock server for frontend development")
   .version(version);
 
@@ -47,10 +47,7 @@ program
     "Add random errors with specified probability (0-1)",
   )
   .option("--reset", "Reset the database before starting")
-  .option(
-    "--no-interactive",
-    "Disable interactive CLI mode",
-  )
+  .option("--no-interactive", "Disable interactive CLI mode")
   .action(async (file: string, options: Record<string, unknown>) => {
     try {
       // Resolve file path
@@ -128,7 +125,7 @@ program
         // Start interactive CLI
         const cli = new InteractiveCliManager(server, database, config);
         const cliResult = await cli.start();
-        
+
         if (cliResult.ok === false) {
           logError(
             chalk.red("Error starting interactive CLI:"),
@@ -151,29 +148,35 @@ program
   });
 
 // Function to run in non-interactive mode
-function runNonInteractiveMode(server: any, config: ApiConfig): void {
+function runNonInteractiveMode(
+  server: {
+    getUrl: () => string;
+    stop: () => Promise<{ ok: boolean; error?: { message: string } }>;
+  },
+  config: ApiConfig,
+): void {
   // Create a fancy server header
   const serverUrl = server.getUrl();
   const headerLine = "═".repeat(serverUrl.length + 24);
-  
+
   logInfo("\n" + chalk.bold.cyan(headerLine));
   logInfo(
     chalk.bold.cyan("║") +
-      chalk.bold.yellow(" 🔥 JSON REST MOCK API SERVER 🔥 ") +
+      chalk.bold.yellow(" 🔥 PRETENDO SERVER 🔥 ") +
       chalk.bold.cyan("║"),
   );
   logInfo(chalk.bold.cyan(headerLine));
-  
+
   logInfo(chalk.bold.green("\n🚀 Server Information:"));
   logInfo(chalk.white("• URL:         ") + chalk.magenta(serverUrl));
   logInfo(
     chalk.white("• Mode:        ") +
       chalk.magenta(process.env.NODE_ENV || "development"),
   );
-  
+
   // Log all active options
   logInfo(chalk.bold.green("\n⚙️  API Configuration:"));
-  
+
   // Extract and display options with nice formatting
   const configPort = config.options?.port || 3000;
   const configHost = config.options?.host || "localhost";
@@ -181,7 +184,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
   const dbPath = config.options?.dbPath || "db.json";
   const defaultPageSize = config.options?.defaultPageSize || 10;
   const maxPageSize = config.options?.maxPageSize || 100;
-  
+
   logInfo(chalk.white("• Port:        ") + chalk.yellow(configPort));
   logInfo(chalk.white("• Host:        ") + chalk.yellow(configHost));
   logInfo(
@@ -193,7 +196,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
     chalk.white("• Page Size:   ") +
       chalk.yellow(`${defaultPageSize} (max: ${maxPageSize})`),
   );
-  
+
   const latency = config.options?.latency;
   if (latency?.enabled) {
     const latencyDesc = latency.fixed
@@ -201,7 +204,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
       : `random ${latency.min || 0}-${latency.max || 1000}ms`;
     logInfo(chalk.white("• Latency:     ") + chalk.yellow(latencyDesc));
   }
-  
+
   const errorSimulation = config.options?.errorSimulation;
   if (errorSimulation?.enabled) {
     logInfo(
@@ -209,14 +212,14 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
         chalk.yellow(`${(errorSimulation.rate || 0) * 100}%`),
     );
   }
-  
+
   // Log available resources with routes
   logInfo(chalk.bold.green("\n📚 API Resources:"));
-  
+
   config.resources.forEach((resource: { name: string }) => {
     const resourceName = resource.name;
     logInfo(chalk.bold.cyan(`\n• ${resourceName.toUpperCase()}`));
-    
+
     // Show all RESTful routes for each resource
     logInfo(
       `  ${chalk.blue("GET")}    ${chalk.white(`/${resourceName}`)}           ${chalk.gray("- List all " + resourceName)}`,
@@ -236,7 +239,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
     logInfo(
       `  ${chalk.red("DELETE")} ${chalk.white(`/${resourceName}/:id`)}       ${chalk.gray("- Delete a " + resourceName)}`,
     );
-    
+
     // Add relationship routes if resource has relationships
     const relationships = config.resources.find(
       (r) => r.name === resourceName,
@@ -256,7 +259,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
       });
     }
   });
-  
+
   // Log special endpoints
   if (config.options?.auth?.enabled === true) {
     const authEndpoint = config.options.auth.authEndpoint || "/auth/login";
@@ -268,7 +271,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
       `  ${chalk.green("POST")}   ${chalk.white("/auth/logout")}   ${chalk.gray("- Logout")}`,
     );
   }
-  
+
   logInfo(chalk.bold.green("\n⚡ Admin Endpoints:"));
   logInfo(
     `  ${chalk.green("POST")}   ${chalk.white("/__reset")}        ${chalk.gray("- Reset database to initial state")}`,
@@ -279,7 +282,7 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
   logInfo(
     `  ${chalk.green("POST")}   ${chalk.white("/__restore")}      ${chalk.gray("- Restore from backup")}`,
   );
-  
+
   // Fancy footer
   logInfo(chalk.bold.cyan("\n" + headerLine));
   logInfo(chalk.bold.yellow("✨ Server is ready to accept connections ✨"));
@@ -292,11 +295,8 @@ function runNonInteractiveMode(server: any, config: ApiConfig): void {
 
     const stopResult = await server.stop();
 
-    if (stopResult.ok === false) {
-      logError(
-        chalk.red("Error stopping server:"),
-        stopResult.error.message,
-      );
+    if (stopResult.ok === false && stopResult.error) {
+      logError(chalk.red("Error stopping server:"), stopResult.error.message);
       process.exit(1);
     }
 

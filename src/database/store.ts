@@ -12,7 +12,9 @@ import {
 import { cloneDeep } from "lodash-es";
 
 export type Store = {
-  getData: (collection?: string) => Record<string, DbRecord[]> | Result<DbRecord[], Error>;
+  getData: (
+    collection?: string,
+  ) => Record<string, DbRecord[]> | Result<DbRecord[], Error>;
   getCollection: (name: string) => Result<DbRecord[], Error>;
   getRecord: (
     collection: string,

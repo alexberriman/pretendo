@@ -1,6 +1,6 @@
 # 🔐 Authentication
 
-JSON REST Mock API provides flexible authentication options to simulate real-world API security behaviors.
+Pretendo provides flexible authentication options to simulate real-world API security behaviors.
 
 **← [Configuration](./configuration.md) | [Table of Contents](./README.md)**
 
@@ -206,7 +206,7 @@ options:
 When using the programmatic API, you can customize the authentication logic:
 
 ```typescript
-import { createServer } from 'json-rest-mock-api';
+import { createServer } from 'pretendo';
 
 const server = createServer({
   // ... resources and options
@@ -316,7 +316,7 @@ test('can create a post when authenticated', async () => {
 
 ## Security Considerations
 
-The authentication system in JSON REST Mock API is designed for **testing and development purposes**. While it implements industry-standard authentication patterns, it has some important limitations to be aware of:
+The authentication system in Pretendo is designed for **testing and development purposes**. While it implements industry-standard authentication patterns, it has some important limitations to be aware of:
 
 - The default JWT secret is not secure for production use
 - Token refresh mechanisms are simplified

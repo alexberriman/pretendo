@@ -1,6 +1,6 @@
 # 🏗️ API Design Principles
 
-This document outlines the REST API design principles that JSON REST Mock API adheres to. These conventions ensure a consistent, predictable, and user-friendly API experience.
+This document outlines the REST API design principles that Pretendo adheres to. These conventions ensure a consistent, predictable, and user-friendly API experience.
 
 **← [API Schema](./schema.md) | [Table of Contents](./README.md) | [Next: Filtering →](./filtering.md)**
 

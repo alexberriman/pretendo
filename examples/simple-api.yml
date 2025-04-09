@@ -54,7 +54,7 @@ data:
 
   todos:
     - id: 1
-      title: Learn json-rest-mock-api
+      title: Learn pretendo
       completed: false
       userId: 1
     - id: 2

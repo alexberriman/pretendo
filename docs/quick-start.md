@@ -1,6 +1,6 @@
 # 🚀 Quick Start
 
-Get up and running with JSON REST Mock API in minutes.
+Get up and running with Pretendo in minutes.
 
 **← [Installation](./installation.md) | [Table of Contents](./README.md) | [Next: API Schema →](./schema.md)**
 
@@ -99,16 +99,16 @@ Run the following command to start your API server:
 
 ```bash
 # If installed globally
-json-rest-mock-api start blog-api.yml
+pretendo start blog-api.yml
 
 # If installed locally
-npx json-rest-mock-api start blog-api.yml
+npx pretendo start blog-api.yml
 ```
 
 You should see output indicating that the server is running:
 
 ```
-🚀 JSON REST Mock API server is running on http://localhost:3000
+🚀 Pretendo server is running on http://localhost:3000
 ```
 
 ### Step 3: Test Your API
@@ -240,12 +240,12 @@ curl "http://localhost:3000/users?sort=username"
 curl "http://localhost:3000/posts?page=1&limit=5"
 ```
 
-## Using JSON REST Mock API Programmatically
+## Using Pretendo Programmatically
 
-You can also use JSON REST Mock API in your JavaScript/TypeScript applications:
+You can also use Pretendo in your JavaScript/TypeScript applications:
 
 ```typescript
-import { createMockApi } from "json-rest-mock-api";
+import { createMockApi } from "pretendo";
 
 const config = {
   resources: [
@@ -291,8 +291,8 @@ data:
   
   posts:
     - id: 1
-      title: "Getting Started with JSON REST Mock API"
-      content: "This is a beginner's guide to using JSON REST Mock API..."
+      title: "Getting Started with Pretendo"
+      content: "This is a beginner's guide to using Pretendo..."
       userId: 1
       createdAt: "2023-04-15T10:30:00Z"
 ```
@@ -302,7 +302,7 @@ data:
 Now that you have a basic API running, you can:
 
 1. Explore the [API Schema](./schema.md) documentation to define more complex resources
-2. Learn about the [API Design Principles](./api-design.md) used in JSON REST Mock API
+2. Learn about the [API Design Principles](./api-design.md) used in Pretendo
 3. Discover advanced [Filtering](./filtering.md) and [Sorting](./sorting.md) options
 4. Implement [Authentication](./authentication.md) for your API
 

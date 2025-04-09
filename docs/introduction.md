@@ -1,10 +1,10 @@
-# 👋 Introduction to JSON REST Mock API
+# 👋 Introduction to Pretendo
 
 **← [Table of Contents](./README.md) | [Next: Installation →](./installation.md)**
 
-## What is JSON REST Mock API?
+## What is Pretendo?
 
-JSON REST Mock API is a powerful development tool that allows you to create fully-featured REST APIs from a simple YAML or JSON specification. It's designed to accelerate frontend development by providing a realistic API backend without the need to build one from scratch.
+Pretendo is a powerful development tool that allows you to create fully-featured REST APIs from a simple YAML or JSON specification. It's designed to accelerate frontend development by providing a realistic API backend without the need to build one from scratch.
 
 ## Why Use a Mock API?
 
@@ -16,7 +16,7 @@ When building frontend applications that consume REST APIs, you often face sever
 4. **Edge case testing**: Testing error conditions and edge cases that are difficult to reproduce with real backends
 5. **Integration testing**: Creating consistent test environments with predictable data
 
-JSON REST Mock API addresses these challenges by providing a complete mock backend that behaves like a real REST API service, with minimal setup.
+Pretendo addresses these challenges by providing a complete mock backend that behaves like a real REST API service, with minimal setup.
 
 ## Core Benefits
 
@@ -74,7 +74,7 @@ Simple configuration format, intuitive API design, and comprehensive documentati
 
 ## Next Steps
 
-- Learn how to [install JSON REST Mock API](./installation.md)
+- Learn how to [install Pretendo](./installation.md)
 - Follow the [quick start guide](./quick-start.md) to create your first API
 - Explore the [API schema](./schema.md) documentation to define your resources
 

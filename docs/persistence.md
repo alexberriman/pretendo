@@ -1,6 +1,6 @@
 # 💾 Data Persistence
 
-JSON REST Mock API provides several ways to persist and manage your mock data across server restarts and between different environments.
+Pretendo provides several ways to persist and manage your mock data across server restarts and between different environments.
 
 **← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Programmatic API →](./programmatic-api.md)**
 
@@ -191,7 +191,7 @@ module.exports = {
 Use the seed file with the API:
 
 ```bash
-json-rest-mock-api start api.yml --seed ./seed.js
+pretendo start api.yml --seed ./seed.js
 ```
 
 ## Data Constraints and Relationships
@@ -250,7 +250,7 @@ You can implement custom persistence adapters for special needs:
 
 ```javascript
 // MongoDB persistence adapter example
-const { createMockApi, createAdapter } = require('json-rest-mock-api');
+const { createMockApi, createAdapter } = require('pretendo');
 
 const mongoAdapter = createAdapter({
   async load() {
@@ -282,17 +282,17 @@ For continuous integration and automated testing:
 
 ```bash
 # Start with fresh data each time
-json-rest-mock-api start api.yml --reset
+pretendo start api.yml --reset
 
 # Use a specific snapshot for tests
-json-rest-mock-api start api.yml --snapshot test-scenario-1
+pretendo start api.yml --snapshot test-scenario-1
 
 # Use in-memory mode for faster tests
-json-rest-mock-api start api.yml --no-persistence
+pretendo start api.yml --no-persistence
 ```
 
 ## Next Steps
 
-Now that you understand data persistence, learn about the [Programmatic API](./programmatic-api.md) to integrate JSON REST Mock API into your applications.
+Now that you understand data persistence, learn about the [Programmatic API](./programmatic-api.md) to integrate Pretendo into your applications.
 
 **← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Programmatic API →](./programmatic-api.md)**

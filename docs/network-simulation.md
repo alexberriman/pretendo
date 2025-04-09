@@ -1,6 +1,6 @@
 # 🌐 Network Simulation
 
-JSON REST Mock API provides powerful capabilities to simulate real-world network conditions, helping you build more resilient applications.
+Pretendo provides powerful capabilities to simulate real-world network conditions, helping you build more resilient applications.
 
 **← [Authentication](./authentication.md) | [Table of Contents](./README.md) | [Next: Data Persistence →](./persistence.md)**
 
@@ -243,13 +243,13 @@ You can also control network simulation via CLI flags:
 
 ```bash
 # Start the server with latency simulation
-json-rest-mock-api start api.yml --latency --latency-min 50 --latency-max 500
+pretendo start api.yml --latency --latency-min 50 --latency-max 500
 
 # Start the server with error simulation
-json-rest-mock-api start api.yml --errors --error-rate 0.05
+pretendo start api.yml --errors --error-rate 0.05
 
 # Combine multiple simulations
-json-rest-mock-api start api.yml --latency --errors --rate-limit
+pretendo start api.yml --latency --errors --rate-limit
 ```
 
 ## Testing Patterns
@@ -268,7 +268,7 @@ Test your application with increasingly degraded network conditions:
 Randomly vary network conditions during extended test runs to discover edge cases:
 
 ```bash
-json-rest-mock-api start api.yml --chaos
+pretendo start api.yml --chaos
 ```
 
 The `--chaos` flag automatically varies latency and error rates over time.
@@ -309,7 +309,7 @@ profiles:
 Start with a specific profile:
 
 ```bash
-json-rest-mock-api start api.yml --profile 3g
+pretendo start api.yml --profile 3g
 ```
 
 ## Next Steps

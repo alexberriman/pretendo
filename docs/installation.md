@@ -1,12 +1,12 @@
 # ⬇️ Installation
 
-This guide covers how to install and set up JSON REST Mock API for your projects.
+This guide covers how to install and set up Pretendo for your projects.
 
 **← [Introduction](./introduction.md) | [Table of Contents](./README.md) | [Next: Quick Start →](./quick-start.md)**
 
 ## Requirements
 
-Before you install JSON REST Mock API, make sure you have the following prerequisites:
+Before you install Pretendo, make sure you have the following prerequisites:
 
 - **Node.js**: Version 14.x or higher
 - **npm** or **yarn**: For package installation
@@ -15,17 +15,17 @@ Before you install JSON REST Mock API, make sure you have the following prerequi
 
 ### Global Installation (Recommended for CLI Usage)
 
-To use JSON REST Mock API as a command-line tool, install it globally:
+To use Pretendo as a command-line tool, install it globally:
 
 ```bash
 # Using npm
-npm install -g json-rest-mock-api
+npm install -g pretendo
 
 # Using yarn
-yarn global add json-rest-mock-api
+yarn global add pretendo
 ```
 
-After installation, the `json-rest-mock-api` command will be available in your terminal.
+After installation, the `pretendo` command will be available in your terminal.
 
 ### Local Project Installation
 
@@ -33,10 +33,10 @@ For integration with your project or for use in testing, install it as a project
 
 ```bash
 # Using npm (development dependency)
-npm install --save-dev json-rest-mock-api
+npm install --save-dev pretendo
 
 # Using yarn (development dependency)
-yarn add --dev json-rest-mock-api
+yarn add --dev pretendo
 ```
 
 ### Installation from Source
@@ -45,10 +45,10 @@ If you want to use the latest development version or contribute to the project, 
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/json-rest-mock-api.git
+git clone https://github.com/username/pretendo.git
 
 # Navigate to the project directory
-cd json-rest-mock-api
+cd pretendo
 
 # Install dependencies
 npm install
@@ -66,17 +66,17 @@ To verify that the installation was successful, run:
 
 ```bash
 # For global installation
-json-rest-mock-api --version
+pretendo --version
 
 # For local installation
-npx json-rest-mock-api --version
+npx pretendo --version
 ```
 
 You should see the version number of the installed package.
 
 ## Configuration Files
 
-JSON REST Mock API uses two types of files:
+Pretendo uses two types of files:
 
 1. **API Specification File**: A YAML or JSON file that defines your API resources, fields, and relationships
 2. **Data File** (optional): A JSON file that stores your persistent data
@@ -90,9 +90,9 @@ For local installations, you might want to add convenient npm scripts to your `p
 ```json
 {
   "scripts": {
-    "mock-api": "json-rest-mock-api start ./api-spec.yml",
-    "mock-api:reset": "json-rest-mock-api start ./api-spec.yml --reset",
-    "test:api": "json-rest-mock-api start ./test-api.yml --port 3001"
+    "mock-api": "pretendo start ./api-spec.yml",
+    "mock-api:reset": "pretendo start ./api-spec.yml --reset",
+    "test:api": "pretendo start ./test-api.yml --port 3001"
   }
 }
 ```
@@ -110,8 +110,8 @@ If you prefer to use Docker, you can use the following Dockerfile:
 ```dockerfile
 FROM node:16-alpine
 
-# Install json-rest-mock-api globally
-RUN npm install -g json-rest-mock-api
+# Install pretendo globally
+RUN npm install -g pretendo
 
 # Create app directory
 WORKDIR /app
@@ -123,14 +123,14 @@ COPY ./api-spec.yml .
 EXPOSE 3000
 
 # Start the server
-CMD ["json-rest-mock-api", "start", "api-spec.yml"]
+CMD ["pretendo", "start", "api-spec.yml"]
 ```
 
 Build and run the Docker container:
 
 ```bash
-docker build -t json-rest-mock-api .
-docker run -p 3000:3000 json-rest-mock-api
+docker build -t pretendo .
+docker run -p 3000:3000 pretendo
 ```
 
 ## Troubleshooting
@@ -145,11 +145,11 @@ docker run -p 3000:3000 json-rest-mock-api
 
 If you encounter any issues during installation:
 
-- Check the [GitHub repository](https://github.com/username/json-rest-mock-api) for known issues
-- Join our [community discussion](https://github.com/username/json-rest-mock-api/discussions) for help
+- Check the [GitHub repository](https://github.com/username/pretendo) for known issues
+- Join our [community discussion](https://github.com/username/pretendo/discussions) for help
 
 ## Next Steps
 
-Now that you've installed JSON REST Mock API, proceed to the [Quick Start Guide](./quick-start.md) to create your first API.
+Now that you've installed Pretendo, proceed to the [Quick Start Guide](./quick-start.md) to create your first API.
 
 **← [Introduction](./introduction.md) | [Table of Contents](./README.md) | [Next: Quick Start →](./quick-start.md)**
