@@ -36,7 +36,10 @@ program
 program
   .command("start")
   .description("Start the mock API server")
-  .argument("<file>", "Path to the API specification file (YAML or JSON)")
+  .argument(
+    "<file>",
+    "Path or URL to the API specification file (YAML or JSON)",
+  )
   .option("-p, --port <number>", "Port to run the server on")
   .option("-h, --host <string>", "Host to run the server on")
   .option("--no-cors", "Disable CORS support")
@@ -48,15 +51,55 @@ program
   )
   .option("--reset", "Reset the database before starting")
   .option("--no-interactive", "Disable interactive CLI mode")
+  .option("--no-prompt", "Skip the prompt when downloading from a URL")
   .action(async (file: string, options: Record<string, unknown>) => {
     try {
-      // Resolve file path
-      const filePath = path.resolve(process.cwd(), file);
+      // Import required functions
+      const { isUrl, isGitHubUrl } = await import("../config/parser.js");
 
-      logInfo(chalk.blue("Loading API specification from:"), filePath);
+      // Check if file is a URL
+      let filePathOrUrl = file;
+      if (isUrl(file)) {
+        const isGitHub = isGitHubUrl(file);
+        const skipPrompt = options.prompt === false || isGitHub;
+
+        if (skipPrompt) {
+          logInfo(chalk.blue("Downloading API specification from:"), file);
+        } else {
+          // Prompt the user to confirm download
+          const readline = await import("readline");
+          const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+          });
+
+          const confirm = await new Promise<boolean>((resolve) => {
+            rl.question(
+              chalk.yellow(
+                `Do you want to download the API schema from ${file}? (y/N): `,
+              ),
+              (answer) => {
+                rl.close();
+                resolve(answer.toLowerCase() === "y");
+              },
+            );
+          });
+
+          if (!confirm) {
+            logError(chalk.red("Download cancelled by user"));
+            process.exit(0);
+          }
+
+          logInfo(chalk.blue("Downloading API specification from:"), file);
+        }
+      } else {
+        // Resolve local file path
+        filePathOrUrl = path.resolve(process.cwd(), file);
+        logInfo(chalk.blue("Loading API specification from:"), filePathOrUrl);
+      }
 
       // Parse config
-      const configResult = await parseFromYaml(filePath);
+      const configResult = await parseFromYaml(filePathOrUrl);
 
       if (configResult.ok === false) {
         logError(

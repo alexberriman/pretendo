@@ -103,6 +103,9 @@ pretendo start blog-api.yml
 
 # If installed locally
 npx pretendo start blog-api.yml
+
+# Using a URL (including GitHub URLs)
+pretendo start https://raw.githubusercontent.com/alexberriman/pretendo/main/examples/blog-api.yml
 ```
 
 You should see output indicating that the server is running:
@@ -110,6 +113,14 @@ You should see output indicating that the server is running:
 ```
 🚀 Pretendo server is running on http://localhost:3000
 ```
+
+#### URL Options
+
+When using a URL as the API specification source:
+
+- For GitHub URLs, the schema will be downloaded automatically without prompting
+- For other URLs, you'll be prompted to confirm download (unless `--no-prompt` is used)
+- Use `--no-prompt` to skip confirmation for any URL: `pretendo start https://example.com/api.yml --no-prompt`
 
 ### Step 3: Test Your API
 
