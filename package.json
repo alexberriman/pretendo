@@ -1,0 +1,66 @@
+{
+  "name": "json-rest-mock-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "npm run build:clean",
+    "build:clean": "rm -rf dist && npm run build:types && npm run build:esm && npm run build:cjs && npm run add-package-jsons",
+    "build:types": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "add-package-jsons": "mkdir -p dist/cjs dist/esm && echo '{\"type\":\"module\"}' > dist/esm/package.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "lint": "eslint 'src/**/*.ts' --ignore-pattern '*.test.ts'",
+    "lint:tests": "eslint 'src/**/*.test.ts'",
+    "lint:all": "eslint '**/*.ts'",
+    "lint:fix": "eslint '**/*.ts' --fix",
+    "type-check": "tsc --noEmit",
+    "type-check:tests": "tsc -p tsconfig.test.json --noEmit",
+    "format": "prettier --write 'src/**/*.{js,ts}'",
+    "format:check": "prettier --check 'src/**/*.{js,ts}'",
+    "check": "npm run lint:all && npm run format:check && npm run test",
+    "check:full": "npm run lint:all && npm run type-check && npm run type-check:tests && npm run format:check && npm run test",
+    "prepare": "npm run build:clean",
+    "prepublishOnly": "npm run check"
+  },
+  "keywords": [],
+  "author": "Alex Berriman <alexb@bezz.com.au>",
+  "license": "ISC",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexberriman/json-rest-mock-api.git"
+  },
+  "files": [],
+  "sideEffects": false,
+  "devDependencies": {
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.1",
+    "@typescript-eslint/parser": "^8.29.1",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.6",
+    "prettier": "^3.5.3",
+    "semantic-release": "^22.0.12",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}
