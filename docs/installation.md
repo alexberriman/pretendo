@@ -79,6 +79,9 @@ You should see the version number of the installed package.
 Pretendo uses two types of files:
 
 1. **API Specification File**: A YAML or JSON file that defines your API resources, fields, and relationships
+   - Can be a local file path or a remote URL (including GitHub URLs)
+   - GitHub URLs are automatically downloaded without prompting
+   - Other URLs will prompt for confirmation unless `--no-prompt` is used
 2. **Data File** (optional): A JSON file that stores your persistent data
 
 You'll learn how to create these files in the [Quick Start](./quick-start.md) guide.

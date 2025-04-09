@@ -37,6 +37,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 ## ✨ Features
 
 - **🚀 Zero Setup Required** - Define your API with a straightforward YAML/JSON spec
+- **📄 Remote Schemas** - Load schemas from local files or remote URLs (GitHub URLs supported!)
 - **🔄 Full CRUD Operations** - Auto-generated RESTful endpoints for all resources ([CRUD docs](./docs/crud.md))
 - **🔗 Advanced Relationships** - Model one-to-many, many-to-many, and belongs-to relationships ([Relationships docs](./docs/relationships.md))
 - **🔍 Rich Querying Capabilities**:
@@ -111,7 +112,14 @@ options:
 Start the server:
 
 ```bash
+# Start with local file
 pretendo start api.yml
+
+# Start with remote URL (GitHub URLs auto-download)
+pretendo start https://raw.githubusercontent.com/alexberriman/pretendo/main/examples/blog-api.yml
+
+# Skip confirmation for non-GitHub URLs
+pretendo start https://example.com/api.yml --no-prompt
 ```
 
 For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
@@ -321,7 +329,7 @@ See [Authentication Documentation](./docs/authentication.md) for more details.
 ## 🧑‍💻 CLI Reference
 
 ```
-pretendo start <file> [options]
+pretendo start <file|url> [options]
 
 Options:
   -p, --port <number>    Port to run the server on
@@ -332,6 +340,7 @@ Options:
   --error-rate <rate>    Add random errors (0-1 probability)
   --reset                Reset database before starting
   --no-interactive       Disable interactive CLI mode
+  --no-prompt            Skip download confirmation for URLs
 ```
 
 ## 📚 Examples
