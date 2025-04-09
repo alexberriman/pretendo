@@ -2,7 +2,7 @@
   <h1>🚀 Pretendo</h1>
   <b>Create powerful, customizable mock REST APIs in seconds 🔥</b>
   
-  <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -20px 0;" />
+  <img src="./docs/cli.png" alt="Pretendo CLI" width="800" height="599" style="max-width: 100%; margin: 0 0 -40px 0;" />
   
   <h4>🏀 Have a play:</h4>
   <code>npx pretendo start repo://simple-api.yml</code>
