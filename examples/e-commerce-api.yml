@@ -1,0 +1,359 @@
+# E-commerce API Example Configuration
+# This is a complete example of an e-commerce API with products, customers, orders, and reviews
+
+resources:
+  # Customers resource
+  - name: customers
+    fields:
+      - name: id
+        type: number
+      - name: email
+        type: string
+        required: true
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+      - name: phone
+        type: string
+      - name: createdAt
+        type: date
+    relationships:
+      - type: hasMany
+        resource: orders
+        foreignKey: customerId
+      - type: hasMany
+        resource: reviews
+        foreignKey: customerId
+      - type: hasOne
+        resource: customerAddresses
+        foreignKey: customerId
+
+  # Customer addresses resource
+  - name: customerAddresses
+    fields:
+      - name: id
+        type: number
+      - name: customerId
+        type: number
+        required: true
+      - name: street
+        type: string
+      - name: city
+        type: string
+      - name: state
+        type: string
+      - name: zipCode
+        type: string
+      - name: country
+        type: string
+      - name: isDefault
+        type: boolean
+        defaultValue: true
+    relationships:
+      - type: belongsTo
+        resource: customers
+        foreignKey: customerId
+
+  # Products resource
+  - name: products
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+        required: true
+      - name: description
+        type: string
+      - name: price
+        type: number
+        required: true
+      - name: categoryId
+        type: number
+      - name: sku
+        type: string
+      - name: inStock
+        type: boolean
+        defaultValue: true
+      - name: imageUrl
+        type: string
+      - name: createdAt
+        type: date
+      - name: updatedAt
+        type: date
+    relationships:
+      - type: belongsTo
+        resource: categories
+        foreignKey: categoryId
+      - type: hasMany
+        resource: reviews
+        foreignKey: productId
+      - type: hasMany
+        resource: orderItems
+        foreignKey: productId
+
+  # Categories resource
+  - name: categories
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+        required: true
+      - name: slug
+        type: string
+      - name: description
+        type: string
+      - name: parentId
+        type: number
+    relationships:
+      - type: hasMany
+        resource: products
+        foreignKey: categoryId
+      - type: belongsTo
+        resource: categories
+        foreignKey: parentId
+        targetKey: id
+
+  # Orders resource
+  - name: orders
+    fields:
+      - name: id
+        type: number
+      - name: customerId
+        type: number
+        required: true
+      - name: status
+        type: string
+        defaultValue: pending
+      - name: total
+        type: number
+      - name: shippingAddress
+        type: object
+      - name: orderDate
+        type: date
+      - name: shippedAt
+        type: date
+    relationships:
+      - type: belongsTo
+        resource: customers
+        foreignKey: customerId
+      - type: hasMany
+        resource: orderItems
+        foreignKey: orderId
+
+  # Order items resource
+  - name: orderItems
+    fields:
+      - name: id
+        type: number
+      - name: orderId
+        type: number
+        required: true
+      - name: productId
+        type: number
+        required: true
+      - name: quantity
+        type: number
+        required: true
+      - name: price
+        type: number
+        required: true
+    relationships:
+      - type: belongsTo
+        resource: orders
+        foreignKey: orderId
+      - type: belongsTo
+        resource: products
+        foreignKey: productId
+
+  # Reviews resource
+  - name: reviews
+    fields:
+      - name: id
+        type: number
+      - name: productId
+        type: number
+        required: true
+      - name: customerId
+        type: number
+        required: true
+      - name: rating
+        type: number
+        required: true
+      - name: title
+        type: string
+      - name: content
+        type: string
+      - name: createdAt
+        type: date
+    relationships:
+      - type: belongsTo
+        resource: products
+        foreignKey: productId
+      - type: belongsTo
+        resource: customers
+        foreignKey: customerId
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  auth:
+    enabled: true
+    tokenExpiration: 3600
+    users:
+      - username: admin
+        password: password
+        role: admin
+      - username: user
+        password: password
+        role: user
+  latency:
+    enabled: true
+    min: 50
+    max: 200
+  defaultPageSize: 20
+  maxPageSize: 100
+
+# Initial data
+data:
+  customers:
+    - id: 1
+      email: john@example.com
+      firstName: John
+      lastName: Doe
+      phone: "555-1234"
+      createdAt: "2023-01-01T00:00:00Z"
+    - id: 2
+      email: jane@example.com
+      firstName: Jane
+      lastName: Smith
+      phone: "555-5678"
+      createdAt: "2023-01-02T00:00:00Z"
+
+  customerAddresses:
+    - id: 1
+      customerId: 1
+      street: "123 Main St"
+      city: "Anytown"
+      state: "CA"
+      zipCode: "12345"
+      country: "USA"
+      isDefault: true
+    - id: 2
+      customerId: 2
+      street: "456 Oak Ave"
+      city: "Somewhere"
+      state: "NY"
+      zipCode: "67890"
+      country: "USA"
+      isDefault: true
+
+  categories:
+    - id: 1
+      name: "Electronics"
+      slug: "electronics"
+      description: "Electronic devices and accessories"
+      parentId: null
+    - id: 2
+      name: "Computers"
+      slug: "computers"
+      description: "Laptops, desktops and accessories"
+      parentId: 1
+    - id: 3
+      name: "Clothing"
+      slug: "clothing"
+      description: "Apparel and fashion items"
+      parentId: null
+
+  products:
+    - id: 1
+      name: "Laptop Pro"
+      description: "High-performance laptop for professionals"
+      price: 1299.99
+      categoryId: 2
+      sku: "LAP-PRO-001"
+      inStock: true
+      imageUrl: "https://example.com/images/laptop-pro.jpg"
+      createdAt: "2023-01-10T00:00:00Z"
+      updatedAt: "2023-01-10T00:00:00Z"
+    - id: 2
+      name: "Smartphone X"
+      description: "Latest smartphone with advanced features"
+      price: 899.99
+      categoryId: 1
+      sku: "SPH-X-001"
+      inStock: true
+      imageUrl: "https://example.com/images/smartphone-x.jpg"
+      createdAt: "2023-01-11T00:00:00Z"
+      updatedAt: "2023-01-11T00:00:00Z"
+    - id: 3
+      name: "Designer T-Shirt"
+      description: "Premium cotton t-shirt with designer print"
+      price: 49.99
+      categoryId: 3
+      sku: "TSH-DSG-001"
+      inStock: true
+      imageUrl: "https://example.com/images/designer-tshirt.jpg"
+      createdAt: "2023-01-12T00:00:00Z"
+      updatedAt: "2023-01-12T00:00:00Z"
+
+  orders:
+    - id: 1
+      customerId: 1
+      status: "completed"
+      total: 1299.99
+      shippingAddress:
+        street: "123 Main St"
+        city: "Anytown"
+        state: "CA"
+        zipCode: "12345"
+        country: "USA"
+      orderDate: "2023-01-15T10:30:00Z"
+      shippedAt: "2023-01-16T14:00:00Z"
+    - id: 2
+      customerId: 2
+      status: "processing"
+      total: 949.98
+      shippingAddress:
+        street: "456 Oak Ave"
+        city: "Somewhere"
+        state: "NY"
+        zipCode: "67890"
+        country: "USA"
+      orderDate: "2023-01-20T15:45:00Z"
+      shippedAt: null
+
+  orderItems:
+    - id: 1
+      orderId: 1
+      productId: 1
+      quantity: 1
+      price: 1299.99
+    - id: 2
+      orderId: 2
+      productId: 2
+      quantity: 1
+      price: 899.99
+    - id: 3
+      orderId: 2
+      productId: 3
+      quantity: 1
+      price: 49.99
+
+  reviews:
+    - id: 1
+      productId: 1
+      customerId: 1
+      rating: 5
+      title: "Excellent laptop!"
+      content: "This laptop exceeds my expectations. Fast and reliable."
+      createdAt: "2023-01-18T09:30:00Z"
+    - id: 2
+      productId: 2
+      customerId: 2
+      rating: 4
+      title: "Great phone"
+      content: "Very good phone, but battery life could be better."
+      createdAt: "2023-01-25T16:20:00Z"

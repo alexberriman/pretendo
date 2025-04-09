@@ -1,0 +1,67 @@
+# Simple API Example
+# Minimal configuration to get started
+
+resources:
+  # Users resource
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+      - name: email
+        type: string
+    relationships:
+      - type: hasMany
+        resource: todos
+        foreignKey: userId
+
+  # Todos resource
+  - name: todos
+    fields:
+      - name: id
+        type: number
+      - name: title
+        type: string
+      - name: completed
+        type: boolean
+        defaultValue: false
+      - name: userId
+        type: number
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  defaultPageSize: 10
+  maxPageSize: 50
+  auth:
+    enabled: false
+
+# Initial data
+data:
+  users:
+    - id: 1
+      name: John Doe
+      email: john@example.com
+    - id: 2
+      name: Jane Smith
+      email: jane@example.com
+
+  todos:
+    - id: 1
+      title: Learn json-rest-mock-api
+      completed: false
+      userId: 1
+    - id: 2
+      title: Build an awesome frontend
+      completed: false
+      userId: 1
+    - id: 3
+      title: Write documentation
+      completed: true
+      userId: 2
