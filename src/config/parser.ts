@@ -51,6 +51,12 @@ export const downloadFromUrl = async (
  */
 export const isUrl = (input: string): boolean => {
   try {
+    // Check for repo:// format
+    if (input.startsWith("repo://")) {
+      return true;
+    }
+
+    // Check standard URLs
     new URL(input);
     return true;
   } catch {
@@ -63,6 +69,29 @@ export const isUrl = (input: string): boolean => {
  */
 export const isGitHubUrl = (url: string): boolean => {
   return url.includes("github.com") || url.includes("githubusercontent.com");
+};
+
+/**
+ * Determines if a string is a repository URL (repo://)
+ */
+export const isRepoUrl = (input: string): boolean => {
+  return input.startsWith("repo://");
+};
+
+/**
+ * Converts a repository URL (repo://) to a GitHub raw URL
+ */
+export const convertRepoUrlToGitHubUrl = (repoUrl: string): string => {
+  if (!isRepoUrl(repoUrl)) {
+    throw new Error("Not a valid repository URL");
+  }
+
+  // Extract the file path from the repo URL (everything after repo://)
+  const filePath = repoUrl.substring(7); // 7 = "repo://".length
+
+  // Construct the GitHub raw URL
+  // Uses the current repository's main branch
+  return `https://raw.githubusercontent.com/alexberriman/pretendo/refs/heads/main/examples/${filePath}`;
 };
 
 /**
@@ -102,8 +131,24 @@ export const parseFromYaml = async (
     let fileContent: string;
     let extension: string;
 
-    // Check if input is a URL
-    if (isUrl(filePathOrUrl)) {
+    // Check if input is a repo URL
+    if (isRepoUrl(filePathOrUrl)) {
+      // Convert repo URL to GitHub raw URL
+      const githubUrl = convertRepoUrlToGitHubUrl(filePathOrUrl);
+
+      // Download the content from GitHub
+      const downloadResult = await downloadFromUrl(githubUrl);
+      if (!downloadResult.ok) {
+        return err(downloadResult.error);
+      }
+
+      fileContent = downloadResult.value;
+      // Extract extension from the file path
+      const filePath = filePathOrUrl.substring(7); // 7 = "repo://".length
+      extension = path.extname(filePath).toLowerCase().replace(".", "");
+    }
+    // Check if input is a standard URL
+    else if (isUrl(filePathOrUrl)) {
       const downloadResult = await downloadFromUrl(filePathOrUrl);
       if (!downloadResult.ok) {
         return err(downloadResult.error);
