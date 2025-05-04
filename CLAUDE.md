@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Name functions/variables clearly to indicate purpose
 - Follow REST API design guidelines from https://github.com/alexberriman/rest-api-design
 - Use camelCase for variables/properties, PascalCase for types/interfaces
+- Use kebab-case for file names (e.g., my-component.ts instead of myComponent.ts)
 - Prefix unused variables with underscore (\_)
 - Write comprehensive tests for all functionality
 - Organize code with clear module boundaries and responsibilities

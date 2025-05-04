@@ -19,7 +19,7 @@ import {
   getResourcesHandler,
   patchResourceHandler,
   updateResourceHandler,
-} from "./crud.js";
+} from "./handlers/index.js";
 import { getRelatedResourcesHandler } from "./relationships.js";
 import { loginHandler, logoutHandler } from "./auth.js";
 import { backupHandler, resetHandler, restoreHandler } from "./admin.js";

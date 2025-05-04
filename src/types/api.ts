@@ -103,3 +103,51 @@ export type Server = {
   getUrl: () => string;
   logs: LogManager;
 };
+
+export interface Store {
+  getData: (
+    collection?: string,
+  ) => Record<string, DbRecord[]> | Result<DbRecord[], Error>;
+  getCollection: (name: string) => Result<DbRecord[], Error>;
+  getRecord: (
+    collection: string,
+    id: string | number,
+    primaryKey?: string,
+  ) => Result<DbRecord | null, Error>;
+  setRecord: (
+    collection: string,
+    record: DbRecord,
+    primaryKey?: string,
+  ) => Result<DbRecord, Error>;
+  addRecord: (
+    collection: string,
+    record: DbRecord,
+    primaryKey?: string,
+  ) => Result<DbRecord, Error>;
+  updateRecord: (
+    collection: string,
+    id: string | number,
+    updateData: Partial<DbRecord>,
+    primaryKey?: string,
+    merge?: boolean,
+  ) => Result<DbRecord | null, Error>;
+  deleteRecord: (
+    collection: string,
+    id: string | number,
+    primaryKey?: string,
+    cascadeRelationships?: Array<{ collection: string; foreignKey: string }>,
+  ) => Result<boolean, Error>;
+  findRelated: (
+    collection: string,
+    id: string | number,
+    relatedCollection: string,
+    foreignKey: string,
+    queryOptions?: QueryOptions,
+    primaryKey?: string,
+  ) => Result<DbRecord[], Error>;
+  query: (
+    collection: string,
+    options?: QueryOptions,
+  ) => Result<DbRecord[], Error>;
+  reset: (newData: Record<string, DbRecord[]>) => Result<void, Error>;
+}
