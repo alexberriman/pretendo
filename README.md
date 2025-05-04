@@ -34,6 +34,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 - [Sorting](./docs/sorting.md) - Sort your collections
 - [Pagination](./docs/pagination.md) - Paginate large datasets
 - [Relationships](./docs/relationships.md) - Work with related resources
+- [Special Fields](./docs/special-fields.md) - Dynamic computed field values
 - [Configuration](./docs/configuration.md) - Configure your mock API
 - [Authentication](./docs/authentication.md) - Secure your endpoints
 
@@ -43,6 +44,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 - **📄 Remote Schemas** - Load schemas from local files or remote URLs (GitHub URLs supported!)
 - **🔄 Full CRUD Operations** - Auto-generated RESTful endpoints for all resources ([CRUD docs](./docs/crud.md))
 - **📝 Custom Routes** - Define custom JSON and JavaScript routes alongside resource endpoints ([Schema docs](./docs/schema.md))
+- **✨ Special Field Values** - Computed dynamic values like timestamps, UUIDs, auto-increment, and more ([Special Fields docs](./docs/special-fields.md))
 - **🔗 Advanced Relationships** - Model one-to-many, many-to-many, and belongs-to relationships ([Relationships docs](./docs/relationships.md))
 - **🔍 Rich Querying Capabilities**:
   - Filtering with operators (`gt`, `lt`, `contains`, `startsWith`, etc.) ([Filtering docs](./docs/filtering.md))

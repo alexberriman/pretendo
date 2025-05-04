@@ -12,6 +12,7 @@ import { Store } from "../types/index.js";
 import {
   initialize,
   getResource,
+  getResourceConfig,
   reset,
   backup,
   restore,
@@ -79,6 +80,10 @@ export const createDatabaseService = (
         persistenceManager,
         relationshipExpander,
       );
+    },
+
+    getResourceConfig: (resourceName: string) => {
+      return getResourceConfig(resourceName, mutableConfig);
     },
 
     reset: async () => {
