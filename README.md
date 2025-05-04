@@ -50,6 +50,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
   - Pagination with RFC-compliant Link headers ([Pagination docs](./docs/pagination.md))
   - Field selection for partial responses ([Field Selection docs](./docs/field-selection.md))
   - Relationship expansion with nested data ([Relationship Expansion docs](./docs/relationship-expansion.md))
+  - UUID support for primary keys ([UUID Support docs](./docs/uuid-example.md))
 - **🔒 Authentication & Authorization** - Built-in JWT auth with configurable users and roles, plus robust RBAC ([Authentication docs](./docs/authentication.md))
 - **🌐 Network Simulation** - Configurable latency and error rates for realistic testing ([Network Simulation docs](./docs/network-simulation.md))
 - **💾 Data Persistence** - State saved to file for continued development ([Persistence docs](./docs/persistence.md))
@@ -177,12 +178,13 @@ The API design is based on RESTful principles from [GitHub: alexberriman/rest-ap
 ### CRUD Operations
 
 ```
-GET    /users              # List all users (paginated)
-GET    /users/123          # Get user with ID 123
-POST   /users              # Create a new user
-PUT    /users/123          # Replace user 123
-PATCH  /users/123          # Update user 123
-DELETE /users/123          # Delete user 123
+GET    /users                                    # List all users (paginated)
+GET    /users/123                                # Get user with numeric ID
+GET    /users/550e8400-e29b-41d4-a716-446655440000  # Get user with UUID
+POST   /users                                    # Create a new user
+PUT    /users/123                                # Replace user
+PATCH  /users/123                                # Update user
+DELETE /users/123                                # Delete user
 ```
 
 See [CRUD Operations](./docs/crud.md) for complete details.
@@ -455,6 +457,9 @@ npx pretendo start repo://blog-api.yml
 
 # Run the e-commerce API example
 npx pretendo start repo://e-commerce-api.yml
+
+# Run the UUID API example
+npx pretendo start repo://uuid-api.yml
 ```
 
 Example specifications:
@@ -462,6 +467,7 @@ Example specifications:
 - [Simple API](./examples/simple-api.yml)
 - [Blog API](./examples/blog-api.yml)
 - [E-commerce API](./examples/e-commerce-api.yml)
+- [UUID API](./examples/uuid-api.yml)
 
 ## 🧪 Testing
 

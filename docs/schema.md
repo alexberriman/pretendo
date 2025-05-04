@@ -87,6 +87,7 @@ The following field types are supported:
 | `date` | Date/time values | ISO 8601 strings or `$now` |
 | `object` | Nested objects | `{ street: "123 Main St", city: "New York" }` |
 | `array` | Arrays of values | `["admin", "editor"]`, `[1, 2, 3]` |
+| `uuid` | UUID values | `"550e8400-e29b-41d4-a716-446655440000"` |
 
 ### Field Properties
 
@@ -283,7 +284,7 @@ resources:
   - name: users
     fields:
       - name: id
-        type: number
+        type: number  # Can also use 'uuid' for UUID primary keys
       - name: username
         type: string
         required: true

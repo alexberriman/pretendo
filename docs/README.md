@@ -15,6 +15,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [Resources](./resources.md)
 - [Relationships](./relationships.md)
 - [Custom Routes](./custom-routes.md)
+- [UUID Support](./uuid-example.md)
 
 ### Query Features
 - [CRUD Operations](./crud.md)

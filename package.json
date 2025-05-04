@@ -47,7 +47,8 @@
     "dev": "tsx src/cli/index.ts start examples/simple-api.yml",
     "dev:blog": "tsx src/cli/index.ts start examples/blog-api.yml",
     "dev:ecommerce": "tsx src/cli/index.ts start examples/e-commerce-api.yml",
-    "dev:custom-routes": "tsx src/cli/index.ts start examples/custom-routes-example.yml"
+    "dev:custom-routes": "tsx src/cli/index.ts start examples/custom-routes-example.yml",
+    "dev:uuid": "tsx src/cli/index.ts start examples/uuid-api.yml"
   },
   "keywords": [
     "api",
@@ -85,7 +86,8 @@
     "js-yaml": "^4.1.0",
     "lodash-es": "^4.17.21",
     "lowdb": "^7.0.1",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
@@ -98,6 +100,7 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.14.0",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.29.1",
     "@typescript-eslint/parser": "^8.29.1",
     "eslint": "^9.24.0",
