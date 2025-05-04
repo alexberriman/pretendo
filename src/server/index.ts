@@ -12,6 +12,7 @@ import {
   createCorsMiddleware,
   AuthService,
   createAuthMiddleware,
+  createAuthorizationMiddleware,
   createErrorSimulationMiddleware,
   createLatencyMiddleware,
   errorHandlerMiddleware,
@@ -59,8 +60,20 @@ export const createServer = (
     // Add error simulation middleware
     app.use(createErrorSimulationMiddleware(options));
 
+    // Add database and apiConfig to request object for middleware - this must be before auth middleware
+    app.use((req, res, next) => {
+      // Use unknown cast first to avoid TypeScript errors
+      (req as unknown as { db: DatabaseService }).db = database;
+      (req as unknown as { apiConfig: ApiConfig }).apiConfig = config;
+      next();
+    });
+
     // Add authentication middleware
     app.use(createAuthMiddleware(authService, options));
+
+    // Add authorization middleware - use execute to return the function
+    const authorizationMiddleware = createAuthorizationMiddleware(config);
+    app.use((req, res, next) => authorizationMiddleware(req, res, next));
 
     // Add API routes
     app.use(createRoutes(database, options, authService));

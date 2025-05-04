@@ -1,6 +1,6 @@
-# 🔐 Authentication
+# 🔐 Authentication & Authorization
 
-Pretendo provides flexible authentication options to simulate real-world API security behaviors.
+Pretendo provides flexible authentication and authorization options to simulate real-world API security behaviors.
 
 **← [Configuration](./configuration.md) | [Table of Contents](./README.md)**
 
@@ -117,50 +117,136 @@ GET /posts
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-## Role-Based Access Control
+## Role-Based Access Control (RBAC)
 
-You can configure access control for resources:
+Pretendo offers a comprehensive Role-Based Access Control system that allows you to:
+
+1. Define roles with specific permissions
+2. Control access to resources based on user roles
+3. Enforce ownership-based permissions
+4. Implement fine-grained access control for each operation type
+
+You can configure access control for resources in your API schema by defining allowed roles for different operations:
 
 ```yaml
 resources:
   - name: users
     access:
-      list: ["admin"]
-      get: ["admin", "user"]
-      create: ["admin"]
-      update: ["admin"]
-      delete: ["admin"]
+      list: ["admin"]            # Only admins can list users
+      get: ["admin", "owner"]    # Admins and the owner can get individual users
+      create: ["admin"]          # Only admins can create users
+      update: ["owner"]          # Only the owner can update their own profile
+      delete: ["admin"]          # Only admins can delete users
   
   - name: posts
+    ownedBy: authorId            # This field links to the owner's user ID
     access:
-      list: ["admin", "user"]
-      get: ["admin", "user"]
-      create: ["admin", "user"]
-      update: ["admin", "user", "owner"]
-      delete: ["admin", "owner"]
+      list: ["*"]                # Any authenticated user can list posts
+      get: ["*"]                 # Any authenticated user can view individual posts
+      create: ["editor", "admin"] # Only editors and admins can create posts 
+      update: ["admin", "owner"] # Only admins or the owner can update posts
+      delete: ["admin", "owner"] # Only admins or the post owner can delete posts
 ```
 
-### Special Access Roles
+For full details on RBAC features, see the dedicated [Role-Based Access Control](./role-based-access-control.md) documentation.
 
-- `"*"`: Any authenticated user
-- `"owner"`: The user who created the resource
+## User-Owned Resources and Ownership-Based Permissions
 
-## User-Owned Resources
-
-You can configure resources to be owned by users:
+A key part of Pretendo's RBAC system is the ability to define resources that are owned by users and enforce ownership-based permissions:
 
 ```yaml
 resources:
   - name: posts
-    ownedBy: userId
+    ownedBy: authorId            # Field that stores the owner's user ID
+    access:
+      update: ["admin", "owner"] # Only admins or the owner can update
+      delete: ["admin", "owner"] # Only admins or the owner can delete
     # ... other resource configuration
 ```
 
-With this configuration:
-- The `userId` field is automatically set to the authenticated user's ID when creating a resource
-- The "owner" access role will work based on this field
+### How Ownership Works
 
-## Advanced Authentication Configuration
+With the `ownedBy` configuration:
+
+1. **Automatic ID Assignment**: When creating a resource, the specified field (e.g., `authorId`) is automatically set to the authenticated user's ID
+2. **Ownership Verification**: For operations that support the `"owner"` role, the system verifies that the requesting user's ID matches the value in the ownership field
+3. **Strict Owner Checking**: When only the `"owner"` role is specified (no other roles), the system enforces strict ownership checks that cannot be bypassed
+
+### Example: Automatic Owner Assignment
+
+When a user creates a resource with `ownedBy` configured:
+
+```http
+POST /posts
+Authorization: Bearer eyJhbGciOiJ...
+Content-Type: application/json
+
+{
+  "title": "My First Post",
+  "content": "Hello World!"
+}
+```
+
+The server automatically assigns the owner, even if not provided in the request:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "title": "My First Post",
+    "content": "Hello World!",
+    "authorId": 5  // Automatically set to the current user's ID
+  }
+}
+```
+
+### Mixed Permission Models
+
+You can combine role-based and ownership-based permissions:
+
+```yaml
+resources:
+  - name: comments
+    ownedBy: userId
+    access:
+      list: ["*"]                      # Anyone can list comments
+      get: ["*"]                       # Anyone can view a comment
+      create: ["*"]                    # Anyone can create a comment
+      update: ["moderator", "admin", "owner"] # Moderators, admins or owner can edit
+      delete: ["moderator", "admin", "owner"] # Moderators, admins or owner can delete
+```
+
+This creates a flexible permission model where:
+- General operations are open to all users
+- Sensitive operations require specific roles OR ownership
+- Administrative roles can override ownership restrictions
+
+## Advanced Authentication and Authorization Configuration
+
+### Strict Ownership Enforcement
+
+When you need to ensure that only the owner of a resource can perform certain operations, use the `owner` role as the only allowed role:
+
+```yaml
+resources:
+  - name: users
+    ownedBy: id
+    access:
+      update: ["owner"]    # Only the owner can update themselves
+      delete: ["admin"]    # Only admins can delete users
+```
+
+With this configuration, the system performs strict ownership checking that:
+1. Verifies the user's ID matches the resource's ownership field
+2. Prevents non-owners from accessing the resource regardless of other roles
+3. Provides clear error messages when ownership checks fail
+
+### Owner ID Type Handling
+
+The ownership checking system is robust against different ID formats:
+- Handles both string and numeric ID comparisons
+- Performs type conversion when needed
+- Supports exact string matching and numeric equality checking
 
 ### JWT Options
 
@@ -175,18 +261,42 @@ options:
       algorithm: "HS256"
 ```
 
-### Custom User Model
+### Custom User Resource
 
-You can specify which resource to use for users:
+When authentication is enabled, you must specify which resource to use for users, along with the field mappings:
 
 ```yaml
+resources:
+  - name: accounts              # Define a custom user resource
+    fields:
+      - name: id
+        type: number
+      - name: email             # Will be used as username field
+        type: string
+        required: true
+      - name: hash              # Will be used as password field
+        type: string
+        required: true
+      - name: userType          # Will be used as role field
+        type: string
+        defaultValue: "basic"
+    # ... other resource configuration
+
 options:
   auth:
     enabled: true
-    userResource: "accounts"  # Custom resource name
-    usernameField: "email"    # Field to use as username
-    passwordField: "hash"     # Field to store password
+    userResource: "accounts"    # Resource to use for users
+    usernameField: "email"      # Field to use as username (default: "username")
+    passwordField: "hash"       # Field to use as password (default: "password")
+    emailField: "email"         # Field to use as email (default: "email")
+    roleField: "userType"       # Field to use as role (default: "role")
 ```
+
+With this configuration:
+- The "accounts" resource will be used for user authentication
+- The "email" field will be used as the username
+- The "hash" field will be used to store and verify passwords
+- The "userType" field will be used for role-based authorization
 
 ### Password Hashing
 
@@ -316,14 +426,21 @@ test('can create a post when authenticated', async () => {
 
 ## Security Considerations
 
-The authentication system in Pretendo is designed for **testing and development purposes**. While it implements industry-standard authentication patterns, it has some important limitations to be aware of:
+The authentication and authorization system in Pretendo is designed for **testing and development purposes**. While it implements industry-standard security patterns, there are some important considerations:
 
+### Authentication Considerations
 - The default JWT secret is not secure for production use
 - Token refresh mechanisms are simplified
 - Password hashing is simulated but not as robust as production systems
 - No protection against brute force attacks
 
-For production systems, you should implement proper authentication with appropriate security measures.
+### Authorization Considerations
+- The RBAC implementation is optimized for development and testing
+- Fine-grained permissions at the field level are not supported
+- Complex role hierarchies are not directly supported
+- Ownership checks work on a single field, not complex relationships
+
+For production systems, you should implement proper authentication and authorization with appropriate security measures and more comprehensive access control.
 
 ## Next Steps
 

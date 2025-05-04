@@ -1,0 +1,213 @@
+# Role-based access control test configuration
+# This configuration explicitly tests the role-based access features
+
+resources:
+  # Users resource (will be the user resource for authentication)
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: username
+        type: string
+        required: true
+      - name: password
+        type: string
+        required: true
+      - name: email
+        type: string
+        required: true
+      - name: role
+        type: string
+        defaultValue: user
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    ownedBy: id      # Users own themselves - for self-management 
+    access:
+      list: ["admin"]               # Only admins can list all users
+      get: ["admin", "owner"]       # Admins and the user themselves can view details
+      create: ["admin"]             # Only admins can create users
+      update: ["owner"]    # Only the user can update themselves
+      delete: ["admin"]             # Only admins can delete users
+  
+  # Public resources - different permission levels
+  - name: articles
+    fields:
+      - name: id
+        type: number
+      - name: title
+        type: string
+        required: true
+      - name: content
+        type: string
+        required: true
+      - name: authorId
+        type: number
+        required: true
+      - name: published
+        type: boolean
+        defaultValue: false
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: authorId
+    ownedBy: authorId   # Articles are owned by their author
+    access:
+      list: ["*"]                   # Anyone authenticated can list articles
+      get: ["*"]                    # Anyone authenticated can view articles
+      create: ["editor", "admin"]   # Only editors and admins can create
+      update: ["admin", "owner"]  # Only admins or the author can update
+      delete: ["admin", "owner"]    # Only admins or the author can delete
+
+  # Restricted resources - for admins only
+  - name: settings
+    fields:
+      - name: id
+        type: number
+      - name: key
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+      - name: description
+        type: string
+    access:
+      list: ["admin"]               # Only admins can list settings
+      get: ["admin"]                # Only admins can view settings
+      create: ["admin"]             # Only admins can create settings
+      update: ["admin"]             # Only admins can update settings
+      delete: ["admin"]             # Only admins can delete settings
+
+  # Mixed permissions resource
+  - name: comments
+    fields:
+      - name: id
+        type: number
+      - name: articleId
+        type: number
+        required: true
+      - name: userId
+        type: number
+        required: true
+      - name: content
+        type: string
+        required: true
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: articles
+        foreignKey: articleId
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+    ownedBy: userId      # Comments are owned by the commenter
+    access:
+      list: ["*"]                  # Anyone authenticated can list comments
+      get: ["*"]                   # Anyone authenticated can view comments
+      create: ["*"]                # Anyone authenticated can create comments
+      update: ["moderator", "admin", "owner"]  # Moderators, admins or comment author can update
+      delete: ["moderator", "admin", "owner"]  # Moderators, admins or comment author can delete
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  auth:
+    enabled: true
+    tokenExpiration: 3600
+    userResource: "users"       # Use the users resource for authentication
+    usernameField: "username"   # Field for username (default but explicit)
+    passwordField: "password"   # Field for password (default but explicit)
+    emailField: "email"         # Field for email (default but explicit)
+    roleField: "role"           # Field for role (default but explicit)
+  latency:
+    enabled: false              # Disable latency for tests
+  defaultPageSize: 20
+  maxPageSize: 100
+
+# Initial data
+data:
+  users:
+    - id: 1
+      username: admin
+      password: password
+      email: admin@example.com
+      role: admin
+      createdAt: "2023-01-01T00:00:00Z"
+    - id: 2
+      username: editor
+      password: password
+      email: editor@example.com
+      role: editor
+      createdAt: "2023-01-02T00:00:00Z"
+    - id: 3
+      username: moderator
+      password: password
+      email: moderator@example.com
+      role: moderator
+      createdAt: "2023-01-03T00:00:00Z"
+    - id: 4
+      username: user1
+      password: password
+      email: user1@example.com
+      role: user
+      createdAt: "2023-01-04T00:00:00Z"
+    - id: 5
+      username: user2
+      password: password
+      email: user2@example.com
+      role: user
+      createdAt: "2023-01-05T00:00:00Z"
+  
+  articles:
+    - id: 1
+      title: "Admin Article"
+      content: "This is an article created by the admin."
+      authorId: 1
+      published: true
+      createdAt: "2023-01-10T00:00:00Z"
+    - id: 2
+      title: "Editor Article"
+      content: "This is an article created by the editor."
+      authorId: 2
+      published: true
+      createdAt: "2023-01-11T00:00:00Z"
+    - id: 3
+      title: "User's Article"
+      content: "This is an article that would be created by a user but added here as initial data."
+      authorId: 4
+      published: true
+      createdAt: "2023-01-12T00:00:00Z"
+  
+  comments:
+    - id: 1
+      articleId: 1
+      userId: 4
+      content: "Great article by the admin!"
+      createdAt: "2023-01-15T00:00:00Z"
+    - id: 2
+      articleId: 2
+      userId: 5
+      content: "Interesting perspective from the editor."
+      createdAt: "2023-01-16T00:00:00Z"
+    - id: 3
+      articleId: 3
+      userId: 2
+      content: "Nice post, user1!"
+      createdAt: "2023-01-17T00:00:00Z"
+  
+  settings:
+    - id: 1
+      key: "site_name"
+      value: "RBAC Test Site"
+      description: "The name of the site used in titles and headers"
+    - id: 2
+      key: "maintenance_mode"
+      value: "false"
+      description: "Whether the site is in maintenance mode"

@@ -27,6 +27,14 @@ resources:
       - type: hasMany
         resource: comments
         foreignKey: authorId
+    # Role-based access control for users
+    access:
+      list: ["admin"]           # Only admins can list all users
+      get: ["admin", "*"]       # Admins and authenticated users can view user profiles
+      create: ["admin"]         # Only admins can create users
+      update: ["admin", "owner"] # Admins and the user themselves can update profiles
+      delete: ["admin"]         # Only admins can delete users
+    ownedBy: id                 # Users own their own profiles (enables "owner" role)
 
   # Posts resource
   - name: posts
@@ -63,6 +71,14 @@ resources:
         foreignKey: postId
         targetKey: categoryId
         through: postCategories
+    # Role-based access control for posts
+    access:
+      list: ["*"]               # Any authenticated user can list posts
+      get: ["*"]                # Any authenticated user can view posts
+      create: ["admin", "user"] # Admins and users can create posts
+      update: ["admin", "owner"] # Admins and the author can update posts
+      delete: ["admin", "owner"] # Admins and the author can delete posts
+    ownedBy: authorId           # Authors own their posts (enables "owner" role)
 
   # Comments resource
   - name: comments
@@ -84,6 +100,14 @@ resources:
       - type: belongsTo
         resource: users
         foreignKey: authorId
+    # Role-based access control for comments
+    access:
+      list: ["*"]               # Any authenticated user can list comments
+      get: ["*"]                # Any authenticated user can view comments
+      create: ["*"]             # Any authenticated user can create comments
+      update: ["admin", "owner"] # Admins and the comment author can update
+      delete: ["admin", "owner"] # Admins and the comment author can delete
+    ownedBy: authorId           # Authors own their comments (enables "owner" role)
 
   # Categories resource
   - name: categories
@@ -102,6 +126,13 @@ resources:
         foreignKey: categoryId
         targetKey: postId
         through: postCategories
+    # Role-based access control for categories
+    access:
+      list: ["*"]              # Any authenticated user can list categories
+      get: ["*"]               # Any authenticated user can view category details
+      create: ["admin"]        # Only admins can create categories
+      update: ["admin"]        # Only admins can update categories
+      delete: ["admin"]        # Only admins can delete categories
 
   # Junction table for posts and categories
   - name: postCategories
@@ -112,6 +143,13 @@ resources:
         type: number
       - name: categoryId
         type: number
+    # Role-based access control for category assignments
+    access:
+      list: ["*"]               # Any authenticated user can list category assignments
+      get: ["*"]                # Any authenticated user can view category assignment details
+      create: ["admin"]         # Only admins can create category assignments
+      update: ["admin"]         # Only admins can update category assignments
+      delete: ["admin"]         # Only admins can delete category assignments
 
 # Configuration options
 options:
@@ -120,6 +158,13 @@ options:
   auth:
     enabled: true
     tokenExpiration: 3600
+    # Specify the user resource and field mappings
+    userResource: "users"
+    usernameField: "username"
+    passwordField: "password"
+    emailField: "email"
+    roleField: "role"
+    # Legacy direct user definitions (only used if userResource is not specified)
     users:
       - username: admin
         password: password

@@ -122,6 +122,36 @@ export const createDatabaseService = (
         }
       },
 
+      findOne: async (query: Record<string, unknown>) => {
+        try {
+          // Build filters from query object
+          const filters: QueryOptions = {
+            filters: Object.entries(query).map(([field, value]) => ({
+              field,
+              operator: "eq",
+              value,
+              caseSensitive: true,
+            })),
+          };
+
+          // Run the query
+          const result = await resourceOps.findAll(filters);
+
+          // Return the first matching record, or null if none found
+          if (result.ok && result.value.length > 0) {
+            return ok(result.value[0]);
+          }
+
+          return ok(null);
+        } catch (error) {
+          return err(
+            error instanceof Error
+              ? error
+              : new Error(`Failed to find record: ${String(error)}`),
+          );
+        }
+      },
+
       create: async (data: Omit<DbRecord, "id">) => {
         try {
           const result = store.addRecord(

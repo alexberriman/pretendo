@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { ApiOptions, ErrorResponse } from "../../types/index.js";
+import {
+  ApiOptions,
+  DatabaseService,
+  ErrorResponse,
+  RequestWithUser,
+} from "../../types/index.js";
 import crypto from "crypto";
 
 // Define types for authentication
@@ -7,6 +12,7 @@ export type User = {
   username: string;
   password: string;
   role?: string;
+  id?: string | number; // Include ID for ownership checks
 };
 
 export type AuthToken = {
@@ -28,16 +34,84 @@ export class AuthService {
   }
 
   // Validate credentials and issue token
-  authenticateUser(username: string, password: string): AuthToken | null {
-    if (!this.options.auth?.enabled || !this.options.auth.users) {
+  async authenticateUser(
+    username: string,
+    password: string,
+    database?: DatabaseService,
+  ): Promise<AuthToken | null> {
+    if (!this.options.auth?.enabled) {
       return null;
     }
 
-    const user = this.options.auth.users.find(
-      (u: { username: string; password: string }) =>
-        u.username === username && u.password === password,
-    );
-    if (!user) {
+    // Use legacy direct user definitions if no database or userResource is defined
+    if (!database || !this.options.auth.userResource) {
+      if (!this.options.auth.users) {
+        return null;
+      }
+
+      const user = this.options.auth.users.find(
+        (u: User) => u.username === username && u.password === password,
+      );
+      if (!user) {
+        return null;
+      }
+
+      // Create token
+      const tokenValue = this.generateToken();
+      const expirationSeconds = this.options.auth.tokenExpiration || 3600; // Default 1 hour
+      const expiresAt = Date.now() + expirationSeconds * 1000;
+
+      // Build user object with proper typing
+      const userObj: Omit<User, "password"> = {
+        username: user.username,
+        role: user.role,
+      };
+
+      // Add ID if available (using type assertion to satisfy TypeScript)
+      if ("id" in user) {
+        userObj.id = (user as { id: string | number }).id;
+      }
+
+      const authToken: AuthToken = {
+        token: tokenValue,
+        user: userObj,
+        expiresAt,
+      };
+
+      // Store the token
+      this.tokens.set(tokenValue, authToken);
+
+      return authToken;
+    }
+
+    // Use specified user resource for authentication
+    const userResourceName = this.options.auth.userResource;
+    const usernameField = this.options.auth.usernameField || "username";
+    const passwordField = this.options.auth.passwordField || "password";
+    const roleField = this.options.auth.roleField || "role";
+
+    // Get the user resource
+    const userResourceResult = database.getResource(userResourceName);
+    if (!userResourceResult.ok) {
+      return null;
+    }
+
+    const userResource = userResourceResult.value;
+
+    // Create query to find user by username
+    const query: Record<string, string> = {};
+    query[usernameField] = username;
+
+    // Find the user
+    const userResult = await userResource.findOne(query);
+    if (!userResult.ok || !userResult.value) {
+      return null;
+    }
+
+    const user = userResult.value;
+
+    // Check password
+    if (user[passwordField] !== password) {
       return null;
     }
 
@@ -46,12 +120,20 @@ export class AuthService {
     const expirationSeconds = this.options.auth.tokenExpiration || 3600; // Default 1 hour
     const expiresAt = Date.now() + expirationSeconds * 1000;
 
+    // Build user object with proper typing
+    const userObj: Omit<User, "password"> = {
+      username: String(user[usernameField]),
+      role: user[roleField] ? String(user[roleField]) : undefined,
+    };
+
+    // Add ID if available
+    if ("id" in user) {
+      userObj.id = user.id as string | number;
+    }
+
     const authToken: AuthToken = {
       token: tokenValue,
-      user: {
-        username: user.username,
-        role: user.role,
-      },
+      user: userObj,
       expiresAt,
     };
 
@@ -142,9 +224,9 @@ export const createAuthMiddleware = (
       } as ErrorResponse);
     }
 
-    // Add user to request for potential authorization checks
-    // Cast to unknown first to avoid type error
-    (req as unknown as Record<string, unknown>).user = authToken.user;
+    // Add user to request for authorization checks
+    // This is used by the authorization middleware
+    (req as RequestWithUser).user = authToken.user;
 
     next();
   };

@@ -25,7 +25,8 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 
 ### Configuration
 - [Server Configuration](./configuration.md)
-- [Authentication](./authentication.md)
+- [Authentication & Authorization](./authentication.md)
+- [Role-Based Access Control](./role-based-access-control.md)
 - [Network Simulation](./network-simulation.md)
 - [Data Persistence](./persistence.md)
 

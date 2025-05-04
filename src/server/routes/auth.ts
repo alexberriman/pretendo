@@ -1,9 +1,17 @@
 import { Request, Response } from "express";
-import { ApiOptions, ErrorResponse } from "../../types/index.js";
+import {
+  ApiOptions,
+  DatabaseService,
+  ErrorResponse,
+} from "../../types/index.js";
 import { AuthService } from "../middleware/auth.js";
 
 // Handler for POST /auth/login
-export const loginHandler = (authService: AuthService, options: ApiOptions) => {
+export const loginHandler = (
+  authService: AuthService,
+  options: ApiOptions,
+  database: DatabaseService,
+) => {
   return async (req: Request, res: Response) => {
     // Check if auth is enabled
     if (!options.auth?.enabled) {
@@ -28,7 +36,11 @@ export const loginHandler = (authService: AuthService, options: ApiOptions) => {
     }
 
     // Authenticate user
-    const authToken = authService.authenticateUser(username, password);
+    const authToken = await authService.authenticateUser(
+      username,
+      password,
+      database,
+    );
 
     if (!authToken) {
       const errorResponse: ErrorResponse = {
