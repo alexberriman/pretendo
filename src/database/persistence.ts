@@ -1,7 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { Result, err, ok } from "../types/index.js";
-import { Store } from "./store.js";
+import { Result, Store, err, ok } from "../types/index.js";
 
 export type PersistenceOptions = {
   dbPath: string;
