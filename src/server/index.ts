@@ -19,6 +19,7 @@ import {
   createLoggerMiddleware,
   logManager,
 } from "./middleware/index.js";
+import { logger } from "../utils/debug-logger.js";
 import { createRoutes } from "./routes/index.js";
 
 export const createServer = (
@@ -75,8 +76,17 @@ export const createServer = (
     const authorizationMiddleware = createAuthorizationMiddleware(config);
     app.use((req, res, next) => authorizationMiddleware(req, res, next));
 
-    // Add API routes
-    app.use(createRoutes(database, options, authService));
+    // Make sure we're passing the routes to the router
+    if (config.routes && config.routes.length > 0) {
+      logger.info(
+        `Server detected ${config.routes.length} custom routes to pass to router`,
+      );
+    } else {
+      logger.info(`Server detected no custom routes to pass to router`);
+    }
+
+    // Add the API routes (including custom routes registered in the router)
+    app.use(createRoutes(database, options, authService, config));
 
     // Add root route
     app.get("/", (req: Request, res: Response) => {

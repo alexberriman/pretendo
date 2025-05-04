@@ -22,6 +22,17 @@ export type ResourceAccessControl = {
   delete?: string[];
 };
 
+export type CustomRouteType = "json" | "javascript";
+
+export type CustomRoute = {
+  path: string;
+  method: "get" | "post" | "put" | "patch" | "delete";
+  type: CustomRouteType;
+  response?: unknown; // For type: "json"
+  code?: string; // For type: "javascript"
+  description?: string;
+};
+
 export type Resource = {
   name: string;
   primaryKey?: string;
@@ -85,4 +96,5 @@ export type ApiConfig = {
   resources: Resource[];
   options?: ApiOptions;
   data?: Record<string, Record<string, unknown>[]>; // Initial data for resources
+  routes?: CustomRoute[]; // Custom routes at the API level
 };

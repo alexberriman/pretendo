@@ -42,6 +42,33 @@ options:
   auth:
     enabled: false
 
+# Custom routes
+routes:
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "online"
+      version: "1.0.0"
+      apiName: "Simple API Example"
+    description: "API status endpoint"
+  
+  - path: "/users/:id/profile"
+    method: "get"
+    type: "json"
+    response:
+      userId: "{id}"
+      profile:
+        avatar: "https://example.com/avatars/{id}.png"
+        dateJoined: "2023-01-{id}"
+    description: "User profile information"
+  
+  - path: "/echo"
+    method: "post"
+    type: "javascript"
+    code: "// Will echo back request data"
+    description: "Echo service for testing"
+
 # Initial data
 data:
   users:

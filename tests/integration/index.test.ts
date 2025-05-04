@@ -9,6 +9,7 @@ import './resources/orders.test';
 import './resources/categories.test';
 import './resources/reviews.test';
 import './admin/admin.test';
+import './custom-routes/custom-routes-simple.test';
 
 describe('Pretendo API Integration Tests', () => {
   // This is just a container for organizing all the tests
