@@ -72,14 +72,26 @@ routes:
   - path: "/files/{*filePath}"
     method: "get"
     type: "javascript"
-    code: "// In the future, this will serve files from a path"
-    description: "File server (placeholder)"
+    code: |
+      response.body = {
+        message: 'hello world',
+        params: request.params,
+        query: request.query,
+        path: request.path
+      };
+    description: "File server"
   
   - path: "/echo"
     method: "post"
     type: "javascript"
-    code: "// In the future, this will echo back the request body"
-    description: "Echo service (placeholder)"
+    code: |
+      response.body = {
+        message: 'hello world',
+        params: request.params,
+        query: request.query,
+        body: request.body
+      };
+    description: "Echo service"
 
 data:
   users:

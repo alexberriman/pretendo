@@ -41,7 +41,14 @@ describe('Custom Routes API (Simple)', () => {
           path: '/echo',
           method: 'post',
           type: 'javascript',
-          code: '// Echo placeholder',
+          code: `
+            response.body = {
+              message: 'hello world',
+              params: request.params,
+              query: request.query,
+              body: request.body
+            };
+          `,
         },
       ],
       options: {

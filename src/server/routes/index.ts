@@ -59,8 +59,8 @@ export const createRoutes = (
         `Registering custom route: ${route.method.toUpperCase()} ${path}`,
       );
 
-      // Create the handler
-      const handler = createCustomRouteHandler(route);
+      // Create the handler with database access
+      const handler = createCustomRouteHandler(route, db);
 
       // Register the route with the appropriate HTTP method
       switch (route.method.toLowerCase()) {
@@ -400,8 +400,8 @@ export const createRoutes = (
         `Registering custom route: ${route.method.toUpperCase()} ${path}`,
       );
 
-      // Create the handler
-      const handler = createCustomRouteHandler(route);
+      // Create the handler with database access
+      const handler = createCustomRouteHandler(route, db);
 
       // Register the route with the appropriate HTTP method
       switch (route.method.toLowerCase()) {

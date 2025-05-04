@@ -14,7 +14,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [API Design Principles](./api-design.md)
 - [Resources](./resources.md)
 - [Relationships](./relationships.md)
-- [Custom Routes](./schema.md#custom-routes)
+- [Custom Routes](./custom-routes.md)
 
 ### Query Features
 - [CRUD Operations](./crud.md)
