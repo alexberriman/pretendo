@@ -43,6 +43,7 @@ export type DbRecord = Record<string, unknown>;
 export type ResourceOperation<T = DbRecord> = {
   findAll: (options?: QueryOptions) => Promise<Result<T[], Error>>;
   findById: (id: string | number) => Promise<Result<T | null, Error>>;
+  findOne: (query: Record<string, unknown>) => Promise<Result<T | null, Error>>;
   create: (data: Omit<T, "id">) => Promise<Result<T, Error>>;
   update: (
     id: string | number,

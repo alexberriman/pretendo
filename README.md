@@ -49,7 +49,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
   - Pagination with RFC-compliant Link headers ([Pagination docs](./docs/pagination.md))
   - Field selection for partial responses ([Field Selection docs](./docs/field-selection.md))
   - Relationship expansion with nested data ([Relationship Expansion docs](./docs/relationship-expansion.md))
-- **🔒 Authentication** - Built-in JWT auth with configurable users and roles ([Authentication docs](./docs/authentication.md))
+- **🔒 Authentication & Authorization** - Built-in JWT auth with configurable users and roles, plus robust RBAC ([Authentication docs](./docs/authentication.md))
 - **🌐 Network Simulation** - Configurable latency and error rates for realistic testing ([Network Simulation docs](./docs/network-simulation.md))
 - **💾 Data Persistence** - State saved to file for continued development ([Persistence docs](./docs/persistence.md))
 - **⚡ Performance** - Optimized for speed, even with large datasets
@@ -304,7 +304,13 @@ options:
 
 See [Configuration Documentation](./docs/configuration.md) for all available options.
 
-## 🔒 Authentication
+## 🔒 Authentication & Authorization
+
+Pretendo provides a comprehensive authentication and authorization system:
+
+1. **Authentication**: JWT-based authentication for user identity
+2. **Role-Based Access Control (RBAC)**: Control access based on user roles
+3. **Ownership-Based Permissions**: Allow users to manage their own resources
 
 When authentication is enabled:
 
@@ -323,7 +329,8 @@ Response:
   "token": "eyJhbGciOiJIUzI1...",
   "user": {
     "username": "admin",
-    "role": "admin"
+    "role": "admin",
+    "id": 1
   },
   "expiresAt": 1609459200000
 }
@@ -336,7 +343,23 @@ curl http://localhost:3000/users \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1..."
 ```
 
-See [Authentication Documentation](./docs/authentication.md) for more details.
+### Role-Based Access Control
+
+Configure different access levels for each resource:
+
+```yaml
+resources:
+  - name: posts
+    ownedBy: authorId
+    access:
+      list: ["*"]                # Any authenticated user can list
+      get: ["*"]                 # Any authenticated user can view
+      create: ["editor", "admin"] # Only editors and admins can create
+      update: ["admin", "owner"] # Admin or the author can update
+      delete: ["admin", "owner"] # Admin or the author can delete
+```
+
+See [Authentication Documentation](./docs/authentication.md) and [RBAC Documentation](./docs/role-based-access-control.md) for more details.
 
 ## 🧑‍💻 CLI Reference
 

@@ -4,8 +4,63 @@ import {
   ErrorResponse,
   PaginationMeta,
   QueryOptions,
+  RequestWithApiConfig,
+  RequestWithResource,
+  RequestWithUser,
 } from "../../types/index.js";
 import { parseQueryOptions } from "../../database/query.js";
+import { logger } from "../../utils/debug-logger.js";
+
+// Helper function to check if user is the owner of a resource
+// This handles both string and numeric ID comparisons in a more robust way
+const isUserResourceOwner = (
+  recordOwnerId: unknown,
+  userId: unknown,
+): boolean => {
+  logger.info(
+    `Comparing ownership IDs: recordOwnerId=${recordOwnerId} (${typeof recordOwnerId}), userId=${userId} (${typeof userId})`,
+  );
+
+  // Special case: if either is undefined or null, they can't match
+  if (
+    recordOwnerId === undefined ||
+    recordOwnerId === null ||
+    userId === undefined ||
+    userId === null
+  ) {
+    logger.info("Ownership check failed: one of the IDs is null or undefined");
+    return false;
+  }
+
+  // Convert both to strings and compare - most reliable method
+  const recordOwnerIdStr = String(recordOwnerId).trim();
+  const userIdStr = String(userId).trim();
+
+  // Direct string comparison
+  if (recordOwnerIdStr === userIdStr) {
+    logger.info("Ownership match by direct string comparison");
+    return true;
+  }
+
+  // Try numeric comparison if both can be parsed as numbers
+  const recordOwnerIdNum = parseFloat(recordOwnerIdStr);
+  const userIdNum = parseFloat(userIdStr);
+
+  if (
+    !isNaN(recordOwnerIdNum) &&
+    !isNaN(userIdNum) &&
+    recordOwnerIdNum === userIdNum
+  ) {
+    logger.info("Ownership match by numeric comparison");
+    return true;
+  }
+
+  // No match
+  logger.info(
+    "Ownership check failed: IDs don't match by string or numeric comparison",
+  );
+  return false;
+};
 
 // Create pagination metadata
 const createPaginationMeta = (
@@ -196,6 +251,52 @@ export const getResourceByIdHandler = (db: DatabaseService) => {
       return res.status(404).json(errorResponse);
     }
 
+    // Check ownership if needed
+    const ownerCheck = (
+      req as { ownerCheckOnly?: boolean; strictOwnerCheck?: boolean }
+    ).ownerCheckOnly;
+    const strictOwnerCheck = (req as { strictOwnerCheck?: boolean })
+      .strictOwnerCheck;
+
+    if (ownerCheck) {
+      const resourceConfig = (req as RequestWithResource).resource;
+      const user = (req as unknown as RequestWithUser).user;
+
+      if (resourceConfig?.ownedBy && user) {
+        const ownerField = resourceConfig.ownedBy;
+        const record = result.value;
+
+        logger.info(
+          `Checking ownership: ${ownerField}=${record[ownerField]}, user=${user.username}, userId=${user.id}, strictCheck=${!!strictOwnerCheck}`,
+        );
+
+        // Check direct ownership - record's owner field equals user.id
+        const isOwner = isUserResourceOwner(record[ownerField], user.id);
+
+        if (!isOwner) {
+          logger.info("Ownership check failed - forbidden");
+          return res.status(403).json({
+            status: 403,
+            message: "Insufficient permissions - not the owner",
+            code: "FORBIDDEN_NOT_OWNER",
+          });
+        }
+
+        logger.info("Ownership check passed - access granted");
+      }
+    } else if (strictOwnerCheck) {
+      // If this is a strict owner check but the ownerCheck flag wasn't set,
+      // this means we didn't even check ownership - reject access
+      logger.info(
+        "STRICT owner check failed - no ownership check was performed",
+      );
+      return res.status(403).json({
+        status: 403,
+        message: "Insufficient permissions - strict owner check failed",
+        code: "FORBIDDEN_STRICT_OWNER",
+      });
+    }
+
     // Handle relationship expansion if requested
     let data = result.value;
     const expand = req.query.expand;
@@ -234,8 +335,92 @@ export const createResourceHandler = (db: DatabaseService) => {
 
     const resource = resourceResult.value;
 
+    // Get the resource configuration from the request (added by authorization middleware)
+    const resourceConfig = (req as RequestWithResource).resource;
+
+    // Handle automatic owner assignment if this resource has an ownership field
+    // and the user is authenticated
+    let dataToCreate = { ...req.body };
+
+    logger.info(
+      `Creating resource '${resourceName}' with payload: ${JSON.stringify(dataToCreate)}`,
+    );
+
+    // Handle ownership check for creation
+    // For resource creation, there's no existing resource to check ownership against
+    // Instead, we automatically set ownership if the resource has an ownership field
+    const user = (req as unknown as RequestWithUser).user;
+
+    if (resourceConfig?.ownedBy && user) {
+      const ownerField = resourceConfig.ownedBy;
+      const username = user?.username;
+      const userId = user?.id;
+
+      logger.info(
+        `Creating ${resourceName} with automatic owner assignment: field=${ownerField}, username=${username}, userId=${userId}`,
+      );
+
+      // For automatic ownership assignment, ALWAYS set the field regardless of what
+      // might be provided in the payload. We need to enforce ownership.
+      logger.info(
+        `Setting ownership field ${ownerField} to user ID ${userId} for new ${resourceName}`,
+      );
+
+      // Even if userId is in the request body, we need to override it
+      if (userId) {
+        logger.info(`Using userId from token: ${userId}`);
+        dataToCreate[ownerField] = userId;
+      }
+      // If no userId in token but we have username, look it up from the database
+      else if (username) {
+        // Get user resource configuration from the request (added by authorization middleware)
+        const apiConfig = (req as unknown as RequestWithApiConfig).apiConfig;
+        const userResourceName =
+          apiConfig?.options?.auth?.userResource || "users";
+        const usernameField =
+          apiConfig?.options?.auth?.usernameField || "username";
+
+        logger.info(
+          `Looking up user ID: resource=${userResourceName}, field=${usernameField}, value=${username}`,
+        );
+
+        // Find the user's ID
+        const usersResourceResult = db.getResource(userResourceName);
+        if (usersResourceResult.ok) {
+          const usersResource = usersResourceResult.value;
+          // Create query using the configured username field
+          const query: Record<string, string> = {};
+          query[usernameField] = username;
+
+          const userResult = await usersResource.findOne(query);
+
+          if (userResult.ok && userResult.value) {
+            const foundUserId = userResult.value.id;
+            logger.info(`Found user ID for ${username}: ${foundUserId}`);
+
+            // Set the owner field regardless of what was provided in the request
+            dataToCreate[ownerField] = foundUserId;
+          } else {
+            logger.info(
+              `User ${username} not found: ${userResult.ok ? "No user found" : userResult.error.message}`,
+            );
+          }
+        } else {
+          logger.info(
+            `User resource ${userResourceName} not found: ${usersResourceResult.error?.message}`,
+          );
+        }
+      } else {
+        logger.info(`No username or userId available for owner assignment`);
+      }
+    } else {
+      logger.info(
+        `No owner assignment: resourceHasOwnerField=${!!resourceConfig?.ownedBy}, userAvailable=${!!user}`,
+      );
+    }
+
     // Create the record
-    const result = await resource.create(req.body);
+    const result = await resource.create(dataToCreate);
     if (!result.ok) {
       const errorResponse: ErrorResponse = {
         status: 400,
@@ -271,6 +456,66 @@ export const updateResourceHandler = (db: DatabaseService) => {
     }
 
     const resource = resourceResult.value;
+
+    // Get the record first to check ownership
+    const getResult = await resource.findById(resourceId);
+    if (!getResult.ok || !getResult.value) {
+      const errorResponse: ErrorResponse = {
+        status: 404,
+        message: `${resourceName} with id ${id} not found`,
+        code: "RECORD_NOT_FOUND",
+      };
+      return res.status(404).json(errorResponse);
+    }
+
+    // Check ownership if needed (for update operations)
+    const ownerCheck = (
+      req as { ownerCheckOnly?: boolean; strictOwnerCheck?: boolean }
+    ).ownerCheckOnly;
+    const strictOwnerCheck = (req as { strictOwnerCheck?: boolean })
+      .strictOwnerCheck;
+
+    if (ownerCheck) {
+      const resourceConfig = (req as RequestWithResource).resource;
+      const user = (req as unknown as RequestWithUser).user;
+
+      if (resourceConfig?.ownedBy && user) {
+        const ownerField = resourceConfig.ownedBy;
+        const record = getResult.value;
+
+        logger.info(
+          `Checking ownership for update: ${ownerField}=${record[ownerField]}, user=${user.username}, userId=${user.id}, strictCheck=${!!strictOwnerCheck}`,
+        );
+
+        // Check direct ownership - record's owner field equals user.id
+        const isOwner = isUserResourceOwner(record[ownerField], user.id);
+        logger.info(
+          `Ownership check result: isOwner=${isOwner}, recordOwnerId=${record[ownerField]}, userId=${user.id}`,
+        );
+
+        if (!isOwner) {
+          logger.info("Ownership check failed for update - forbidden");
+          return res.status(403).json({
+            status: 403,
+            message: "Insufficient permissions - not the owner",
+            code: "FORBIDDEN_NOT_OWNER",
+          });
+        }
+
+        logger.info("Ownership check passed for update - access granted");
+      }
+    } else if (strictOwnerCheck) {
+      // If this is a strict owner check but the ownerCheck flag wasn't set,
+      // this means we didn't even check ownership - reject access
+      logger.info(
+        "STRICT owner check failed - no ownership check was performed",
+      );
+      return res.status(403).json({
+        status: 403,
+        message: "Insufficient permissions - strict owner check failed",
+        code: "FORBIDDEN_STRICT_OWNER",
+      });
+    }
 
     // Update the record (full replace)
     const result = await resource.update(resourceId, req.body);
@@ -319,6 +564,69 @@ export const patchResourceHandler = (db: DatabaseService) => {
 
     const resource = resourceResult.value;
 
+    // Get the record first to check ownership
+    const getResult = await resource.findById(resourceId);
+    if (!getResult.ok || !getResult.value) {
+      const errorResponse: ErrorResponse = {
+        status: 404,
+        message: `${resourceName} with id ${id} not found`,
+        code: "RECORD_NOT_FOUND",
+      };
+      return res.status(404).json(errorResponse);
+    }
+
+    // Check ownership if needed (for update operations)
+    const ownerCheck = (
+      req as { ownerCheckOnly?: boolean; strictOwnerCheck?: boolean }
+    ).ownerCheckOnly;
+    const strictOwnerCheck = (req as { strictOwnerCheck?: boolean })
+      .strictOwnerCheck;
+
+    if (ownerCheck) {
+      const resourceConfig = (req as RequestWithResource).resource;
+      const user = (req as unknown as RequestWithUser).user;
+
+      if (resourceConfig?.ownedBy && user) {
+        const ownerField = resourceConfig.ownedBy;
+        const record = getResult.value;
+
+        logger.info(
+          `Checking ownership for patch: ${ownerField}=${record[ownerField]}, user=${user.username}, userId=${user.id}, strictCheck=${!!strictOwnerCheck}`,
+        );
+
+        // Check direct ownership - record's owner field equals user.id
+        const isOwner = isUserResourceOwner(record[ownerField], user.id);
+        logger.info(
+          `Ownership check result: isOwner=${isOwner}, recordOwnerId=${record[ownerField]}, userId=${user.id}`,
+        );
+
+        if (!isOwner) {
+          logger.info("Ownership check failed for patch - forbidden");
+          return res.status(403).json({
+            status: 403,
+            message: "Insufficient permissions - not the owner",
+            code: "FORBIDDEN_NOT_OWNER",
+          });
+        }
+
+        logger.info("Ownership check passed for patch - access granted");
+      }
+    } else if (strictOwnerCheck) {
+      // If this is a strict owner check but the ownerCheck flag wasn't set,
+      // this means we didn't even check ownership - reject access
+      logger.info(
+        "STRICT owner check failed - no ownership check was performed",
+      );
+      return res.status(403).json({
+        status: 403,
+        message: "Insufficient permissions - strict owner check failed",
+        code: "FORBIDDEN_STRICT_OWNER",
+      });
+    }
+
+    // Additional access log for debugging
+    logger.info(`PATCH operation - resourceId=${resourceId}, access granted`);
+
     // Update the record (partial update)
     const result = await resource.patch(resourceId, req.body);
     if (!result.ok) {
@@ -365,6 +673,63 @@ export const deleteResourceHandler = (db: DatabaseService) => {
     }
 
     const resource = resourceResult.value;
+
+    // Get the record first to check ownership
+    const getResult = await resource.findById(resourceId);
+    if (!getResult.ok || !getResult.value) {
+      const errorResponse: ErrorResponse = {
+        status: 404,
+        message: `${resourceName} with id ${id} not found`,
+        code: "RECORD_NOT_FOUND",
+      };
+      return res.status(404).json(errorResponse);
+    }
+
+    // Check ownership if needed (for delete operations)
+    const ownerCheck = (
+      req as { ownerCheckOnly?: boolean; strictOwnerCheck?: boolean }
+    ).ownerCheckOnly;
+    const strictOwnerCheck = (req as { strictOwnerCheck?: boolean })
+      .strictOwnerCheck;
+
+    if (ownerCheck) {
+      const resourceConfig = (req as RequestWithResource).resource;
+      const user = (req as unknown as RequestWithUser).user;
+
+      if (resourceConfig?.ownedBy && user) {
+        const ownerField = resourceConfig.ownedBy;
+        const record = getResult.value;
+
+        logger.info(
+          `Checking ownership for delete: ${ownerField}=${record[ownerField]}, user=${user.username}, userId=${user.id}, strictCheck=${!!strictOwnerCheck}`,
+        );
+
+        // Check direct ownership - record's owner field equals user.id
+        const isOwner = isUserResourceOwner(record[ownerField], user.id);
+
+        if (!isOwner) {
+          logger.info("Ownership check failed for delete - forbidden");
+          return res.status(403).json({
+            status: 403,
+            message: "Insufficient permissions - not the owner",
+            code: "FORBIDDEN_NOT_OWNER",
+          });
+        }
+
+        logger.info("Ownership check passed for delete - access granted");
+      }
+    } else if (strictOwnerCheck) {
+      // If this is a strict owner check but the ownerCheck flag wasn't set,
+      // this means we didn't even check ownership - reject access
+      logger.info(
+        "STRICT owner check failed - no ownership check was performed",
+      );
+      return res.status(403).json({
+        status: 403,
+        message: "Insufficient permissions - strict owner check failed",
+        code: "FORBIDDEN_STRICT_OWNER",
+      });
+    }
 
     // Delete the record
     const result = await resource.delete(resourceId);

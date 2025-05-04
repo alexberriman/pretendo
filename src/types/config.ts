@@ -14,12 +14,22 @@ export type Relationship = {
   through?: string; // For many-to-many relationships, specifies the join table
 };
 
+export type ResourceAccessControl = {
+  list?: string[];
+  get?: string[];
+  create?: string[];
+  update?: string[];
+  delete?: string[];
+};
+
 export type Resource = {
   name: string;
   primaryKey?: string;
   fields: ResourceField[];
   relationships?: Relationship[];
   initialData?: Record<string, unknown>[];
+  access?: ResourceAccessControl;
+  ownedBy?: string; // Field that links to the owning user
 };
 
 export type AuthConfig = {
@@ -28,6 +38,13 @@ export type AuthConfig = {
   authEndpoint?: string; // Default is /auth/login
   secretKey?: string; // For signing JWT tokens
   tokenHeader?: string; // Default is Authorization
+  // User resource configuration (required when auth is enabled)
+  userResource?: string; // Name of the resource to use for users
+  usernameField?: string; // Field to use as username (default: 'username')
+  passwordField?: string; // Field to use as password (default: 'password')
+  emailField?: string; // Field to use as email (default: 'email')
+  roleField?: string; // Field to use as role (default: 'role')
+  // Legacy direct user definitions (deprecated)
   users?: Array<{
     username: string;
     password: string;

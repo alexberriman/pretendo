@@ -221,6 +221,11 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
   if (initialData.data) {
     for (const [collection, records] of Object.entries(initialData.data)) {
       if (Array.isArray(records)) {
+        // Create collection if it doesn't exist yet (which may happen if the collection
+        // is referenced in relationships but not explicitly defined in resources)
+        if (!data[collection]) {
+          data[collection] = [];
+        }
         data[collection] = cloneDeep(records);
       }
     }
@@ -257,8 +262,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
   return {
     getData: (collection?: string) => {
       if (collection) {
+        // Auto-create collection if it doesn't exist
         if (!data[collection]) {
-          return err(new Error(`Collection '${collection}' does not exist`));
+          data[collection] = [];
         }
         return ok(cloneDeep(data[collection]));
       }
@@ -266,8 +272,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
     },
 
     getCollection: (name: string): Result<DbRecord[], Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[name]) {
-        return err(new Error(`Collection '${name}' does not exist`));
+        data[name] = [];
       }
       return ok(cloneDeep(data[name]));
     },
@@ -277,8 +284,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       id: string | number,
       primaryKey: string = getPrimaryKey(collection),
     ): Result<DbRecord | null, Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
       }
 
       const record = data[collection].find((r) => r[primaryKey] === id);
@@ -290,8 +298,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       record: DbRecord,
       primaryKey: string = getPrimaryKey(collection),
     ): Result<DbRecord, Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
       }
 
       // Ensure record has the primary key
@@ -319,8 +328,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       record: DbRecord,
       primaryKey: string = getPrimaryKey(collection),
     ): Result<DbRecord, Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
       }
 
       // Ensure record has the primary key
@@ -352,8 +362,10 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       primaryKey: string = getPrimaryKey(collection),
       merge: boolean = true,
     ): Result<DbRecord | null, Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
+        return ok(null); // Return null since the record won't exist in a new collection
       }
 
       const index = data[collection].findIndex((r) => r[primaryKey] === id);
@@ -377,8 +389,10 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       primaryKey: string = getPrimaryKey(collection),
       cascadeRelationships?: Array<{ collection: string; foreignKey: string }>,
     ): Result<boolean, Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
+        return ok(false); // No records to delete in a new collection
       }
 
       const index = data[collection].findIndex((r) => r[primaryKey] === id);
@@ -389,12 +403,10 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       // Handle cascade deletes
       if (cascadeRelationships && cascadeRelationships.length > 0) {
         for (const rel of cascadeRelationships) {
+          // Auto-create related collection if it doesn't exist
           if (!data[rel.collection]) {
-            return err(
-              new Error(
-                `Related collection '${rel.collection}' does not exist`,
-              ),
-            );
+            data[rel.collection] = [];
+            continue; // Skip this relation since there's nothing to delete
           }
 
           // Delete all related records
@@ -417,24 +429,21 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       queryOptions?: QueryOptions,
       primaryKey: string = getPrimaryKey(collection),
     ): Result<DbRecord[], Error> => {
+      // Auto-create collections if they don't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
+        return ok([]); // No source records to find related records for
       }
 
       if (!data[relatedCollection]) {
-        return err(
-          new Error(`Related collection '${relatedCollection}' does not exist`),
-        );
+        data[relatedCollection] = [];
+        return ok([]); // No related records in an empty collection
       }
 
       // Check if the source record exists
       const sourceRecord = data[collection].find((r) => r[primaryKey] === id);
       if (!sourceRecord) {
-        return err(
-          new Error(
-            `Record with ${primaryKey}=${id} not found in '${collection}'`,
-          ),
-        );
+        return ok([]); // Source record not found, return empty array instead of error
       }
 
       // Find related records
@@ -479,8 +488,9 @@ export const createStore = (initialData: ReadonlyDeep<ApiConfig>): Store => {
       collection: string,
       options?: QueryOptions,
     ): Result<DbRecord[], Error> => {
+      // Auto-create collection if it doesn't exist
       if (!data[collection]) {
-        return err(new Error(`Collection '${collection}' does not exist`));
+        data[collection] = [];
       }
 
       let records = cloneDeep(data[collection]);

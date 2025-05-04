@@ -55,6 +55,13 @@ Each resource represents an entity in your API and will generate a full set of C
     - type: hasMany           # Relationship type
       resource: posts         # Related resource
       foreignKey: userId      # Foreign key field
+  access:                     # Role-based access control
+    list: ["admin"]           # Roles that can list users
+    get: ["admin", "user"]    # Roles that can get individual users
+    create: ["admin"]         # Roles that can create users
+    update: ["admin"]         # Roles that can update users
+    delete: ["admin"]         # Roles that can delete users
+  ownedBy: userId             # Field linking to the owner (enables "owner" role)
 ```
 
 ### Field Types
@@ -206,6 +213,13 @@ resources:
         through: post_tags
         foreignKey: postId
         targetKey: tagId
+    ownedBy: userId           # This field links to the owner's user ID
+    access:                   # Role-based access control
+      list: ["*"]             # Anyone authenticated can list posts
+      get: ["*"]              # Anyone authenticated can view posts
+      create: ["admin", "user"] # Admins and users can create posts
+      update: ["admin", "owner"] # Only admin or post owner can update
+      delete: ["admin", "owner"] # Only admin or post owner can delete
 
   - name: comments
     fields:
@@ -263,11 +277,14 @@ options:
   port: 3000
   corsEnabled: true
   auth:
-    enabled: true
+    enabled: true     # Authentication must be enabled for role-based access
     users:
       - username: admin
         password: password
-        role: admin
+        role: admin   # This user has admin role
+      - username: user1
+        password: password
+        role: user    # This user has regular user role
   latency:
     enabled: true
     min: 50
