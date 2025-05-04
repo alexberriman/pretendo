@@ -93,24 +93,55 @@ fields:
 | `date` | Date/time values | ISO 8601 strings or `$now` |
 | `object` | Nested objects | `{ street: "123 Main St", city: "New York" }` |
 | `array` | Arrays of values | `["admin", "editor"]`, `[1, 2, 3]` |
+| `uuid` | UUID values | `"550e8400-e29b-41d4-a716-446655440000"` |
 
 ### Special Field Values
 
-Some field types support special values:
+You can use special field values that are computed dynamically at runtime by using them as `defaultValue`. These help you create more realistic and functional APIs with minimal configuration:
 
-- For `date` fields:
-  - `$now`: Current timestamp
-  - `$future`: Random future date
-  - `$past`: Random past date
+| Special Value | Description | Use Case |
+|---------------|-------------|----------|
+| `$now` | Current date/time | Timestamps like `createdAt` and `updatedAt` |
+| `$uuid` | Random UUID (v4) | Generate unique identifiers |
+| `$increment` | Auto-incrementing number | Sequence numbers, order numbers |
+| `$userId` | Current user's ID | Record ownership tracking |
+| `$hash` | Hash for sensitive data | Password storage |
 
-- For `string` fields:
-  - `$uuid`: Generate a UUID
-  - `$email`: Generate a random email
-  - `$name`: Generate a random name
+#### Behavior Details
 
-- For `number` fields:
-  - `$increment`: Auto-incrementing value (useful for IDs)
-  - `$random`: Random number within a specified range
+Special fields behave differently depending on the operation context:
+
+- **On Create**: All special fields are processed if the field value is not explicitly provided
+- **On Update/Patch**:
+  - `$now` fields are updated only if they represent `updatedAt` timestamps
+  - Password fields marked with `$hash` are rehashed if a new value is provided
+  - Other special fields generally don't recompute on updates unless specifically needed
+
+#### Examples
+
+```yaml
+fields:
+  - name: id
+    type: uuid  # UUID primary key
+  - name: title
+    type: string
+    required: true
+  - name: createdAt
+    type: date
+    defaultValue: $now  # Set to current timestamp on creation
+  - name: updatedAt
+    type: date
+    defaultValue: $now  # Updated automatically on creation and updates
+  - name: password
+    type: string 
+    defaultValue: $hash  # Automatically hashed for security
+  - name: authorId
+    type: number
+    defaultValue: $userId  # Set to current user's ID
+  - name: sequenceNumber
+    type: number
+    defaultValue: $increment  # Auto-increments based on existing values
+```
 
 ## Resource Endpoints
 

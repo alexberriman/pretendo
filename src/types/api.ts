@@ -64,6 +64,9 @@ export type ResourceOperation<T = DbRecord> = {
 export type DatabaseService = {
   initialize: (config: ReadonlyDeep<ApiConfig>) => Promise<Result<void, Error>>;
   getResource: (resourceName: string) => Result<ResourceOperation, Error>;
+  getResourceConfig: (
+    resourceName: string,
+  ) => Result<import("./config.js").Resource, Error>;
   reset: () => Promise<Result<void, Error>>;
   backup: (path?: string) => Promise<Result<string, Error>>;
   restore: (path: string) => Promise<Result<void, Error>>;

@@ -98,7 +98,7 @@ Each field can have the following properties:
 | `name` | string | **Required**. Field name (in camelCase) |
 | `type` | string | **Required**. Field data type |
 | `required` | boolean | Whether the field is required for creation |
-| `defaultValue` | any | Default value when not provided |
+| `defaultValue` | any | Default value when not provided (can be a special field value) |
 | `description` | string | Documentation for the field |
 | `enum` | array | List of allowed values |
 | `min` | number | Minimum value (for numbers) |
@@ -106,6 +106,8 @@ Each field can have the following properties:
 | `minLength` | number | Minimum length (for strings) |
 | `maxLength` | number | Maximum length (for strings) |
 | `pattern` | string | Regex pattern for validation (for strings) |
+
+> **Special Field Values**: You can use special field values like `$now`, `$uuid`, `$increment`, `$userId`, or `$hash` as `defaultValue`. See [Special Fields Documentation](./special-fields.md) for details.
 
 ## Custom Routes
 

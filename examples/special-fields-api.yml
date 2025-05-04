@@ -1,0 +1,105 @@
+# Special Fields API Example
+# This demonstrates the usage of special field values
+
+resources:
+  # Users with password hashing and timestamps
+  - name: users
+    fields:
+      - name: id
+        type: uuid  # UUID primary key
+      - name: username
+        type: string
+        required: true
+      - name: email
+        type: string
+        required: true
+      - name: password
+        type: string
+        required: true
+        defaultValue: $hash  # Auto-hash passwords
+      - name: role
+        type: string
+        enum: ["user", "admin", "editor"]
+        defaultValue: "user"
+      - name: createdAt
+        type: date
+        defaultValue: $now
+      - name: updatedAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: hasMany
+        resource: posts
+        foreignKey: authorId
+
+  # Posts with timestamps and user reference
+  - name: posts
+    fields:
+      - name: id
+        type: uuid
+      - name: title
+        type: string
+        required: true
+      - name: content
+        type: string
+        required: true
+      - name: authorId
+        type: uuid
+        required: true
+        defaultValue: $userId  # Auto-set to current user ID
+      - name: sequenceNumber
+        type: number
+        defaultValue: $increment  # Auto-increment
+      - name: published
+        type: boolean
+        defaultValue: false
+      - name: createdAt
+        type: date
+        defaultValue: $now
+      - name: updatedAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: authorId
+    ownedBy: authorId  # This connects to RBAC for ownership access
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  defaultPageSize: 10
+  maxPageSize: 50
+  # Authentication is required for $userId to work
+  auth:
+    enabled: true
+    jwt:
+      secret: "your-secret-key"  # Use a strong key in production
+      expiresIn: "1h"
+    users:
+      - username: admin
+        password: password  # Will be auto-hashed 
+        role: admin
+      - username: user1
+        password: password
+        role: user
+
+# Initial data
+data:
+  users:
+    - id: "550e8400-e29b-41d4-a716-446655440000"
+      username: admin
+      email: admin@example.com
+      password: password  # Will be auto-hashed before storage
+      role: admin
+      createdAt: "2023-01-01T00:00:00.000Z"
+      updatedAt: "2023-01-01T00:00:00.000Z"
+    
+    - id: "66025249-b1d0-43e6-af0a-2c49134d91c0"
+      username: user1
+      email: user1@example.com
+      password: password
+      role: user
+      createdAt: "2023-01-02T00:00:00.000Z"
+      updatedAt: "2023-01-02T00:00:00.000Z"

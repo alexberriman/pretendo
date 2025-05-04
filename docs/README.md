@@ -14,6 +14,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [API Design Principles](./api-design.md)
 - [Resources](./resources.md)
 - [Relationships](./relationships.md)
+- [Special Fields](./special-fields.md)
 - [Custom Routes](./custom-routes.md)
 - [UUID Support](./uuid-example.md)
 
