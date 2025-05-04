@@ -341,9 +341,11 @@ const server = createServer({
 });
 ```
 
-## Disabling Authentication for Specific Routes
+## Authentication Configuration for Routes
 
-You can disable authentication for specific routes or methods:
+### Resource-Level Access Control
+
+You can disable authentication for specific resource routes or methods:
 
 ```yaml
 resources:
@@ -355,6 +357,36 @@ resources:
       update: ["admin", "owner"] # Require admin or ownership for updates
       delete: ["admin"]          # Only admins can delete
 ```
+
+### Custom Route Authentication
+
+For custom routes, you can configure route-level authentication:
+
+```yaml
+routes:
+  # Public status endpoint (no authentication required)
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "operational"
+      version: "1.0.0"
+    auth:
+      enabled: false
+      
+  # Admin-only dashboard endpoint
+  - path: "/admin/dashboard"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Admin-only dashboard code
+      const stats = await db.getResource("stats");
+      response.body = { stats };
+    auth:
+      roles: ["admin"]
+```
+
+For more details on route-level authentication, see the [Custom Routes](./custom-routes.md#route-level-authentication) documentation.
 
 ## Client Integration Examples
 

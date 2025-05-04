@@ -69,6 +69,9 @@ Each custom route has the following properties:
 | `response` | any | For "json" type routes, the static response to return |
 | `code` | string | For "javascript" type routes, the code to execute |
 | `description` | string | Optional description for documentation purposes |
+| `auth` | object | Optional route-level authentication configuration |
+| `auth.enabled` | boolean | Whether authentication is required for this route (overrides global setting) |
+| `auth.roles` | string[] | Allowed roles for this route (e.g., ["admin", "editor"]) |
 
 ## JSON Routes
 
@@ -361,6 +364,100 @@ If your code throws an unhandled exception or times out, the server will automat
         error: error.message
       };
     }
+```
+
+## Route-Level Authentication
+
+You can configure authentication requirements for each custom route, independent of the global authentication settings. This allows you to:
+
+1. Make specific routes public even when global authentication is enabled
+2. Restrict routes to specific user roles
+3. Apply authentication only to selected routes
+
+### Disabling Authentication for a Specific Route
+
+To make a route public even when global authentication is enabled:
+
+```yaml
+- path: "/status"
+  method: "get"
+  type: "json"
+  response:
+    status: "operational"
+    version: "1.0.0"
+  auth:
+    enabled: false
+```
+
+### Requiring Authentication for a Route
+
+To require authentication for a route (any authenticated user can access):
+
+```yaml
+- path: "/user-stats"
+  method: "get"
+  type: "json"
+  response:
+    stats:
+      users: 1250
+      active: 742
+  auth:
+    enabled: true
+```
+
+### Restricting a Route to Specific Roles
+
+To allow only users with specific roles to access a route:
+
+```yaml
+- path: "/admin/dashboard"
+  method: "get"
+  type: "javascript"
+  code: |
+    // Admin-only dashboard code
+    const stats = await db.getResource("stats");
+    const users = await db.getResource("users");
+    
+    response.body = {
+      systemStats: stats,
+      userCount: users.length
+    };
+  auth:
+    roles: ["admin"]
+```
+
+### Allowing Multiple Roles
+
+You can specify multiple allowed roles:
+
+```yaml
+- path: "/content/manage"
+  method: "post"
+  type: "javascript"
+  code: |
+    // Content management code
+    response.body = {
+      message: "Content updated successfully"
+    };
+  auth:
+    roles: ["admin", "editor", "content-manager"]
+```
+
+### Using the Wildcard Role
+
+The special `*` wildcard role allows any authenticated user:
+
+```yaml
+- path: "/user-data"
+  method: "get"
+  type: "javascript"
+  code: |
+    // Return data for the authenticated user
+    const userId = request.user.id;
+    const userData = await db.getResource("users", userId);
+    response.body = { userData };
+  auth:
+    roles: ["*"]
 ```
 
 ## Next Steps

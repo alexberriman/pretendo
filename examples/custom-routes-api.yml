@@ -22,6 +22,15 @@ resources:
 options:
   port: 3000
   corsEnabled: true
+  auth:
+    enabled: true
+    users:
+      - username: admin
+        password: password
+        role: admin
+      - username: user
+        password: password
+        role: user
 
 routes:
   - path: "/hello"
@@ -29,7 +38,7 @@ routes:
     type: "json"
     response: 
       message: "Hello, world!"
-    description: "A simple hello world endpoint"
+    description: "A simple hello world endpoint with default auth"
   
   - path: "/status"
     method: "get"
@@ -38,19 +47,65 @@ routes:
       status: "operational"
       version: "1.2.0"
       environment: "development"
-    description: "API status endpoint"
+    description: "API status endpoint - public access"
+    auth:
+      enabled: false
   
   - path: "/echo"
     method: "post"
     type: "javascript"
-    code: "// In the future, this will echo back the request body"
-    description: "Echo service (placeholder)"
+    code: |
+      response.body = {
+        message: "Echo service",
+        requestBody: request.body,
+        timestamp: new Date().toISOString()
+      };
+    description: "Echo service - requires any authentication"
+    auth:
+      enabled: true
+      roles: ["*"]
   
   - path: "/calculate"
     method: "post"
     type: "javascript"
-    code: "// In the future, this will perform calculations based on input"
-    description: "Calculator service (placeholder)"
+    code: |
+      const { a, b, operation } = request.body;
+      
+      if (typeof a !== 'number' || typeof b !== 'number') {
+        response.status = 400;
+        response.body = { error: "Invalid input: a and b must be numbers" };
+        return;
+      }
+      
+      let result;
+      switch (operation) {
+        case 'add':
+          result = a + b;
+          break;
+        case 'subtract':
+          result = a - b;
+          break;
+        case 'multiply':
+          result = a * b;
+          break;
+        case 'divide':
+          if (b === 0) {
+            response.status = 400;
+            response.body = { error: "Cannot divide by zero" };
+            return;
+          }
+          result = a / b;
+          break;
+        default:
+          response.status = 400;
+          response.body = { error: "Invalid operation" };
+          return;
+      }
+      
+      response.body = { result };
+    description: "Calculator service - admin only"
+    auth:
+      roles: ["admin"]
     
   # Routes with URL parameters
   - path: "/users/:id"
@@ -80,8 +135,91 @@ routes:
   - path: "/files/*"
     method: "get"
     type: "javascript"
-    code: "// In the future, this will serve files from a path"
-    description: "File server (placeholder)"
+    code: |
+      // Get the file path from wildcard params
+      const filePath = request.params["*"];
+      
+      // Public files are accessible to anyone, private files only to authenticated users
+      if (filePath.startsWith("public/")) {
+        response.body = {
+          message: "Serving public file",
+          path: filePath,
+          content: "This is the content of a public file: " + filePath
+        };
+      } else if (filePath.startsWith("private/")) {
+        if (!request.user) {
+          response.status = 401;
+          response.body = { error: "Authentication required for private files" };
+          return;
+        }
+        
+        response.body = {
+          message: "Serving private file",
+          path: filePath,
+          user: request.user.username,
+          content: "This is the content of a private file: " + filePath
+        };
+      } else {
+        response.status = 404;
+        response.body = { error: "File not found" };
+      }
+    description: "File server - mixed public/private access"
+      
+  # Admin-only dashboard
+  - path: "/admin/dashboard"
+    method: "get"
+    type: "javascript"
+    code: |
+      if (request.user.role !== "admin") {
+        response.status = 403;
+        response.body = { error: "Admin access required" };
+        return;
+      }
+      
+      // Get summary data using the DB api
+      const users = await db.getResource("users");
+      const products = await db.getResource("products");
+      
+      response.body = {
+        title: "Admin Dashboard",
+        summary: {
+          usersCount: users.length,
+          productsCount: products.length,
+          serverTime: new Date().toISOString()
+        },
+        user: {
+          username: request.user.username,
+          role: request.user.role
+        }
+      };
+    description: "Admin dashboard - admin role required"
+    auth:
+      roles: ["admin"]
+      
+  # User profile route - accessible by both admin and user roles
+  - path: "/profile"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Get the current user's profile
+      const username = request.user.username;
+      const role = request.user.role;
+      
+      // Get user info from database
+      const usersResource = await db.getResource("users");
+      
+      response.body = {
+        profile: {
+          username: username,
+          role: role,
+          accountType: role === "admin" ? "Administrator" : "Standard User",
+          permissions: role === "admin" ? ["read", "write", "delete", "admin"] : ["read", "write"]
+        },
+        message: role === "admin" ? "Welcome, administrator!" : "Welcome to your profile"
+      };
+    description: "User profile - accessible by admin and user roles"
+    auth:
+      roles: ["admin", "user"]
 
 data:
   users:
