@@ -6,6 +6,7 @@ import {
   NextFunction,
 } from "express";
 import {
+  ApiConfig,
   ApiOptions,
   DatabaseService,
   RequestWithUser,
@@ -19,6 +20,7 @@ import {
   getResourcesHandler,
   patchResourceHandler,
   updateResourceHandler,
+  createCustomRouteHandler,
 } from "./handlers/index.js";
 import { getRelatedResourcesHandler } from "./relationships.js";
 import { loginHandler, logoutHandler } from "./auth.js";
@@ -29,11 +31,75 @@ export const createRoutes = (
   db: DatabaseService,
   options: ApiOptions,
   authService: AuthService,
+  apiConfig?: ApiConfig,
 ): Router => {
   const router = Router();
 
   const defaultPageSize = options.defaultPageSize || 10;
   const maxPageSize = options.maxPageSize || 100;
+
+  // Register custom routes if they exist in the API config
+  // IMPORTANT: Register these BEFORE the resource routes to avoid conflicts
+  if (apiConfig?.routes && apiConfig.routes.length > 0) {
+    logger.info(
+      `Registering ${apiConfig.routes.length} custom routes at router level`,
+    );
+    logger.debug(`API Config: ${JSON.stringify(apiConfig, null, 2)}`);
+    logger.info(`Registering ${apiConfig.routes.length} custom routes`);
+
+    for (const route of apiConfig.routes) {
+      // Ensure path starts with a slash
+      const path = route.path.startsWith("/") ? route.path : `/${route.path}`;
+
+      // Log the route being registered
+      logger.debug(
+        `Registering custom route: ${route.method.toUpperCase()} ${path}`,
+      );
+      logger.info(
+        `Registering custom route: ${route.method.toUpperCase()} ${path}`,
+      );
+
+      // Create the handler
+      const handler = createCustomRouteHandler(route);
+
+      // Register the route with the appropriate HTTP method
+      switch (route.method.toLowerCase()) {
+        case "get":
+          logger.debug(`Adding GET route ${path}`);
+          router.get(path, handler as RequestHandler);
+          break;
+        case "post":
+          logger.debug(`Adding POST route ${path}`);
+          router.post(path, handler as RequestHandler);
+          break;
+        case "put":
+          logger.debug(`Adding PUT route ${path}`);
+          router.put(path, handler as RequestHandler);
+          break;
+        case "patch":
+          logger.debug(`Adding PATCH route ${path}`);
+          router.patch(path, handler as RequestHandler);
+          break;
+        case "delete":
+          logger.debug(`Adding DELETE route ${path}`);
+          router.delete(path, handler as RequestHandler);
+          break;
+        default:
+          logger.warn(
+            `Unsupported HTTP method for custom route: ${route.method}`,
+          );
+      }
+    }
+  } else {
+    logger.info("No custom routes to register");
+    if (apiConfig) {
+      logger.debug(
+        "ApiConfig exists but no routes property or empty routes array",
+      );
+    } else {
+      logger.debug("ApiConfig is undefined or null");
+    }
+  }
 
   // Custom middleware to check resource-level access in RBAC
   // Define the middleware as a regular function first
@@ -313,6 +379,54 @@ export const createRoutes = (
   router.post("/__reset", resetHandler(db) as RequestHandler);
   router.post("/__backup", backupHandler(db) as RequestHandler);
   router.post("/__restore", restoreHandler(db) as RequestHandler);
+
+  // Register custom routes if they exist in the API config
+  if (apiConfig?.routes && apiConfig.routes.length > 0) {
+    logger.info(`Registering ${apiConfig.routes.length} custom routes`);
+    logger.debug(
+      `Found ${apiConfig.routes.length} custom routes to register: ${JSON.stringify(
+        apiConfig.routes,
+        null,
+        2,
+      )}`,
+    );
+
+    for (const route of apiConfig.routes) {
+      // Ensure path starts with a slash
+      const path = route.path.startsWith("/") ? route.path : `/${route.path}`;
+
+      // Log the route being registered
+      logger.info(
+        `Registering custom route: ${route.method.toUpperCase()} ${path}`,
+      );
+
+      // Create the handler
+      const handler = createCustomRouteHandler(route);
+
+      // Register the route with the appropriate HTTP method
+      switch (route.method.toLowerCase()) {
+        case "get":
+          router.get(path, handler as RequestHandler);
+          break;
+        case "post":
+          router.post(path, handler as RequestHandler);
+          break;
+        case "put":
+          router.put(path, handler as RequestHandler);
+          break;
+        case "patch":
+          router.patch(path, handler as RequestHandler);
+          break;
+        case "delete":
+          router.delete(path, handler as RequestHandler);
+          break;
+        default:
+          logger.warn(
+            `Unsupported HTTP method for custom route: ${route.method}`,
+          );
+      }
+    }
+  }
 
   return router;
 };

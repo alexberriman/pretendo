@@ -1,0 +1,105 @@
+resources:
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+      - name: email
+        type: string
+
+  - name: products
+    fields:
+      - name: id
+        type: number
+      - name: name
+        type: string
+      - name: price
+        type: number
+      - name: description
+        type: string
+
+options:
+  port: 3000
+  corsEnabled: true
+  auth:
+    enabled: true
+    users:
+      - username: admin
+        password: password
+        role: admin
+
+routes:
+  - path: "/hello"
+    method: "get"
+    type: "json"
+    response: 
+      message: "Hello, world!"
+    description: "A simple hello world endpoint"
+  
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "operational"
+      version: "1.2.0"
+      environment: "testing"
+    description: "API status endpoint"
+  
+  - path: "/users/:id"
+    method: "get"
+    type: "json"
+    response:
+      user:
+        id: "{id}"
+        name: "User {id}"
+        email: "user{id}@example.com"
+    description: "Get user by ID custom route"
+    
+  - path: "/products/:id/details/:format"
+    method: "get"
+    type: "json"
+    response:
+      product: 
+        id: "{id}"
+        name: "Product {id}"
+        format: "{format}"
+      meta:
+        generated: true
+        format: "{format}"
+    description: "Get product details in specific format"
+    
+  - path: "/files/{*filePath}"
+    method: "get"
+    type: "javascript"
+    code: "// In the future, this will serve files from a path"
+    description: "File server (placeholder)"
+  
+  - path: "/echo"
+    method: "post"
+    type: "javascript"
+    code: "// In the future, this will echo back the request body"
+    description: "Echo service (placeholder)"
+
+data:
+  users:
+    - id: 1
+      name: "John Doe"
+      email: "john@example.com"
+    - id: 2
+      name: "Jane Smith"
+      email: "jane@example.com"
+  
+  products:
+    - id: 1
+      name: "Laptop"
+      price: 1299.99
+      description: "High-performance laptop with latest specs"
+    - id: 2
+      name: "Smartphone"
+      price: 799.99
+      description: "Latest smartphone with advanced camera"
+    - id: 3
+      name: "Headphones"
+      price: 199.99
+      description: "Noise-cancelling wireless headphones"

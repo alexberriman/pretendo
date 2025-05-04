@@ -42,6 +42,7 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 - **🚀 Zero Setup Required** - Define your API with a straightforward YAML/JSON spec
 - **📄 Remote Schemas** - Load schemas from local files or remote URLs (GitHub URLs supported!)
 - **🔄 Full CRUD Operations** - Auto-generated RESTful endpoints for all resources ([CRUD docs](./docs/crud.md))
+- **📝 Custom Routes** - Define custom JSON and JavaScript routes alongside resource endpoints ([Schema docs](./docs/schema.md))
 - **🔗 Advanced Relationships** - Model one-to-many, many-to-many, and belongs-to relationships ([Relationships docs](./docs/relationships.md))
 - **🔍 Rich Querying Capabilities**:
   - Filtering with operators (`gt`, `lt`, `contains`, `startsWith`, etc.) ([Filtering docs](./docs/filtering.md))
@@ -273,6 +274,7 @@ See [Relationship Expansion Documentation](./docs/relationship-expansion.md) for
 ## 🔧 Configuration Options
 
 ```yaml
+# Global options
 options:
   # Server options
   port: 3000
@@ -300,6 +302,31 @@ options:
   dataFile: ./db.json
   defaultPageSize: 10
   maxPageSize: 100
+
+# Custom routes at the API level
+routes:
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "operational"
+      version: "1.0.0"
+      environment: "production"
+  
+  - path: "/users/:id/profile"
+    method: "get"
+    type: "json"
+    response:
+      user:
+        id: "{id}"
+        profile:
+          bio: "Profile for user {id}"
+          avatar: "https://example.com/avatars/{id}.jpg"
+  
+  - path: "/files/{*filePath}"
+    method: "get"
+    type: "javascript"
+    code: "// Will serve files from paths in the future"
 ```
 
 See [Configuration Documentation](./docs/configuration.md) for all available options.

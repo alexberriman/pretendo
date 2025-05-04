@@ -20,6 +20,17 @@ options:     # Global API configuration
   port: 3000
   # ... other options
 
+routes:      # Custom API routes (optional)
+  - path: "/hello"
+    method: "get"
+    type: "json"
+    response: { "message": "Hello, world!" }
+  
+  - path: "/calculate"
+    method: "post"
+    type: "javascript"
+    code: "// JavaScript code to run (placeholder for now)"
+
 data:        # Optional initial data
   users:
     - id: 1
@@ -94,6 +105,120 @@ Each field can have the following properties:
 | `minLength` | number | Minimum length (for strings) |
 | `maxLength` | number | Maximum length (for strings) |
 | `pattern` | string | Regex pattern for validation (for strings) |
+
+## Custom Routes
+
+You can define custom API routes at the top level of your configuration:
+
+```yaml
+routes:
+  - path: "/hello"
+    method: "get"
+    type: "json"
+    response: { "message": "Hello, world!" }
+  
+  - path: "/calculate"
+    method: "post"
+    type: "javascript"
+    code: "// JavaScript code to run"
+    description: "A calculator endpoint"
+```
+
+Each custom route has the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `path` | string | **Required**. Route path (with or without leading slash) |
+| `method` | string | **Required**. HTTP method: "get", "post", "put", "patch", or "delete" |
+| `type` | string | **Required**. Route type: "json" or "javascript" |
+| `response` | any | For "json" type routes, the static response to return |
+| `code` | string | For "javascript" type routes, the code to execute (placeholder for now) |
+| `description` | string | Optional description for documentation purposes |
+
+**Important**: Custom routes are registered before resource routes, which means they take precedence over resource routes with the same path pattern. For example, if you define a custom route `/users/:id` and also have a resource named `users`, the custom route will be used for requests to `/users/123` instead of the default resource endpoint.
+
+### Route Types
+
+#### JSON Routes
+
+JSON routes return a static JSON response that you define in the configuration:
+
+```yaml
+- path: "/status"
+  method: "get"
+  type: "json"
+  response: 
+    status: "healthy"
+    version: "1.0.0"
+    uptime: "3d 4h 12m"
+```
+
+#### JavaScript Routes
+
+JavaScript routes allow you to define custom logic. Currently, these routes act as placeholders that return "hello world" along with any request parameters and query parameters:
+
+```yaml
+- path: "/echo"
+  method: "post"
+  type: "javascript"
+  code: "// In the future, this will execute custom JavaScript code"
+```
+
+When called, a JavaScript route returns a response like:
+
+```json
+{
+  "message": "hello world",
+  "params": {
+    "id": "123",
+    "filePath": "path/to/file.txt"
+  },
+  "query": {
+    "sort": "name",
+    "filter": "active"
+  }
+}
+```
+
+This is useful for debugging and testing your front-end while the actual custom logic implementation is in development.
+
+### URL Parameters and Wildcards
+
+Routes can include URL parameters and wildcards, following Express.js path patterns:
+
+```yaml
+# URL Parameters with :paramName syntax
+- path: "/users/:id"
+  method: "get"
+  type: "json"
+  response:
+    user:
+      id: "{id}"  # The {id} will be replaced with the actual parameter value
+      name: "User {id}"
+
+# Wildcards using Express 5 format with {*paramName}
+- path: "/files/{*filePath}"
+  method: "get"
+  type: "json"
+  response:
+    message: "File handler"
+    filePath: "{filePath}"
+```
+
+#### Parameter Substitution in JSON Responses
+
+For JSON route types, you can include parameter placeholders in string values:
+
+```yaml
+- path: "/greet/:name"
+  method: "get"
+  type: "json"
+  response:
+    message: "Hello, {name}!"
+    id: "{id}"  # Parameters not present in the URL will be left as-is
+```
+
+These placeholders will be replaced with the actual parameter values when the response is sent. Both `{paramName}` and `{:paramName}` formats are supported.
 
 ## Relationship Types
 
@@ -289,6 +414,31 @@ options:
     enabled: true
     min: 50
     max: 200
+
+routes:
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "online"
+      version: "1.0.0"
+      uptime: "3d 4h 12m"
+    description: "API status endpoint"
+  
+  - path: "/metrics"
+    method: "get"
+    type: "json"
+    response:
+      users: 153
+      posts: 864
+      comments: 2145
+    description: "API metrics endpoint"
+  
+  - path: "/webhook"
+    method: "post"
+    type: "javascript"
+    code: "// Process incoming webhook data"
+    description: "Webhook processor"
 
 data:
   users:

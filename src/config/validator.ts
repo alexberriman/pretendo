@@ -152,5 +152,6 @@ export const mergeConfig = (config: ApiConfig): Result<ApiConfig, Error> => {
     resources: config.resources,
     options: mergedOptions,
     data: config.data || {},
+    routes: config.routes || [], // Include custom routes if they exist
   });
 };
