@@ -24,6 +24,11 @@ export type ResourceAccessControl = {
 
 export type CustomRouteType = "json" | "javascript";
 
+export type CustomRouteAccessControl = {
+  enabled?: boolean; // Whether authentication is required for this route (override global setting)
+  roles?: string[]; // Allowed roles for this route
+};
+
 export type CustomRoute = {
   path: string;
   method: "get" | "post" | "put" | "patch" | "delete";
@@ -31,6 +36,7 @@ export type CustomRoute = {
   response?: unknown; // For type: "json"
   code?: string; // For type: "javascript"
   description?: string;
+  auth?: CustomRouteAccessControl; // Route-level authentication configuration
 };
 
 export type Resource = {
