@@ -57,7 +57,14 @@ describe('Direct App Custom Routes Test', () => {
         path: '/files/{*filePath}',
         method: 'get',
         type: 'javascript',
-        code: '// File server placeholder',
+        code: `
+          response.body = {
+            message: 'hello world',
+            params: request.params,
+            query: request.query,
+            path: request.path
+          };
+        `,
       },
     ];
     

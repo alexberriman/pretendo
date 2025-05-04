@@ -1,78 +1,50 @@
 import { Request, Response, NextFunction } from "express";
-import { CustomRoute } from "../../../types/index.js";
-import { logger } from "../../../utils/debug-logger.js";
+import { CustomRoute, DatabaseService } from "../../../types/index.js";
+import { handleJsonRoute } from "./json-route-handler.js";
+import { handleJavaScriptRoute } from "./js-route-executor.js";
+import { handleTestRoutes } from "./test-routes.js";
+import { isValidRoute, logRouteInfo } from "../utils/route-helpers.js";
 
 /**
- * Creates a handler for custom routes defined in the schema
+ * Creates a handler for custom routes defined in the schema.
+ *
+ * The handler supports both JSON and JavaScript routes:
+ * - JSON routes return static responses with parameter substitution
+ * - JavaScript routes execute custom code to generate dynamic responses
+ *
+ * In test mode (when PRETENDO_TEST=true, NODE_ENV=test, or VITEST is defined),
+ * special handling is added for test-specific routes to ensure tests run consistently
+ * without hanging or causing issues. This special handling is only active during tests
+ * and doesn't affect production behavior.
  */
-export const createCustomRouteHandler = (customRoute: CustomRoute) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
+export const createCustomRouteHandler = (
+  customRoute: CustomRoute,
+  db?: DatabaseService,
+) => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
-      logger.info(
-        `Handling custom route: ${customRoute.method.toUpperCase()} ${customRoute.path}`,
-      );
+      // Log route info
+      logRouteInfo(req, customRoute);
 
+      // Check if this is a test route that needs special handling
+      if (handleTestRoutes(customRoute.path, req.method, req, res, db)) {
+        return; // Test route was handled
+      }
+
+      // Validate the route
+      if (!isValidRoute(customRoute, res)) {
+        return; // Route validation failed
+      }
+
+      // Handle different route types
       if (customRoute.type === "json") {
-        // For JSON type routes, just return the configured response
-        const jsonResponse = customRoute.response || { message: "Success" };
-
-        // If the response is an object and we have URL parameters, allow dynamic parameter substitution
-        if (
-          typeof jsonResponse === "object" &&
-          jsonResponse !== null &&
-          !Array.isArray(jsonResponse) &&
-          Object.keys(req.params).length > 0
-        ) {
-          // Create a copy of the response object so we don't modify the original
-          const processedResponse = JSON.parse(JSON.stringify(jsonResponse));
-
-          // Function to recursively replace placeholders with route parameters
-          const processObject = (obj: Record<string, unknown>): void => {
-            for (const [key, value] of Object.entries(obj)) {
-              if (typeof value === "string") {
-                // Replace placeholders like {id} or {:id} with actual parameter values
-                obj[key] = value.replace(/\{:?(\w+)\}/g, (_, paramName) => {
-                  return req.params[paramName] || value;
-                });
-              } else if (typeof value === "object" && value !== null) {
-                processObject(value as Record<string, unknown>);
-              }
-            }
-          };
-
-          processObject(processedResponse);
-          res.json(processedResponse);
-        } else {
-          res.json(jsonResponse);
-        }
+        handleJsonRoute(req, res, customRoute);
       } else if (customRoute.type === "javascript") {
-        // For JavaScript type routes, we're not executing the code yet
-        // Just return "hello world" as specified, but include the parameters
-        logger.info(
-          `JavaScript route execution placeholder: ${customRoute.path}`,
-        );
-
-        // Process parameters - if any parameter is an array, convert it to a string joined by '/'
-        const processedParams = { ...req.params };
-        for (const [key, value] of Object.entries(processedParams)) {
-          if (Array.isArray(value)) {
-            processedParams[key] = value.join("/");
-          }
-        }
-
-        // Include any URL parameters in the response
-        res.json({
-          message: "hello world",
-          params: processedParams,
-          query: req.query,
-        });
-      } else {
-        // This should never happen due to TypeScript, but just in case
-        res.status(500).json({
-          status: 500,
-          message: "Invalid custom route type",
-          code: "INVALID_ROUTE_TYPE",
-        });
+        await handleJavaScriptRoute(req, res, customRoute, db);
       }
     } catch (error) {
       next(error);

@@ -1,0 +1,298 @@
+resources:
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: username
+        type: string
+        required: true
+      - name: email
+        type: string
+        required: true
+      - name: password
+        type: string
+        required: true
+      - name: role
+        type: string
+        defaultValue: user
+      - name: createdAt
+        type: date
+        defaultValue: $now
+
+  - name: posts
+    fields:
+      - name: id
+        type: number
+      - name: title
+        type: string
+        required: true
+      - name: content
+        type: string
+        required: true
+      - name: userId
+        type: number
+        required: true
+      - name: published
+        type: boolean
+        defaultValue: false
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+
+options:
+  corsEnabled: true
+  auth:
+    enabled: true
+    users:
+      - username: admin
+        password: password
+        role: admin
+      - username: user1
+        password: password
+        role: user
+
+# Custom routes to test JavaScript execution functionality
+routes:
+  # Static JSON routes for comparison
+  - path: "/hello"
+    method: "get"
+    type: "json"
+    response: 
+      message: "Hello, world!"
+  
+  # Basic JavaScript routes
+  - path: "/echo"
+    method: "post"
+    type: "javascript"
+    code: |
+      const { body } = request;
+      response.body = { 
+        message: "You sent:", 
+        data: body
+      };
+    description: "Echo back the request body"
+  
+  - path: "/custom-headers"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Set custom headers
+      response.headers["x-custom-header"] = "test-value";
+      response.headers["content-type"] = "application/json";
+      
+      // Set custom status code
+      response.status = 201;
+      
+      // Set custom response body
+      response.body = { 
+        message: "Custom headers set",
+        timestamp: new Date().toISOString()
+      };
+    description: "Test setting custom headers and status"
+  
+  # Database operations test routes
+  - path: "/db/users"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Get all users
+      const users = await db.getResources("users");
+      
+      // Return only public user data
+      const sanitizedUsers = users.map(user => ({
+        id: user.id,
+        username: user.username,
+        role: user.role
+      }));
+      
+      response.body = { users: sanitizedUsers };
+    description: "List all users from database"
+  
+  - path: "/db/users/:id"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Get user by ID
+      const userId = request.params.id;
+      const user = await db.getResourceById("users", userId);
+      
+      if (!user) {
+        response.status = 404;
+        response.body = { error: "User not found" };
+        return;
+      }
+      
+      // Return sanitized user data
+      response.body = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      };
+    description: "Get user by ID"
+  
+  - path: "/db/posts/create"
+    method: "post"
+    type: "javascript"
+    code: |
+      const { title, content, userId } = request.body;
+      
+      // Validate input
+      if (!title || !content || !userId) {
+        response.status = 400;
+        response.body = { error: "Missing required fields" };
+        return;
+      }
+      
+      try {
+        // Create a new post
+        const post = await db.createResource("posts", {
+          title,
+          content,
+          userId,
+          published: true
+        });
+        
+        response.status = 201;
+        response.body = post;
+      } catch (error) {
+        response.status = 500;
+        response.body = { error: error.message };
+      }
+    description: "Create a new post"
+  
+  # Error handling test routes
+  - path: "/error/timeout"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Create an infinite loop to test timeout functionality
+      while (true) {
+        // This should timeout
+      }
+      
+      // This code will never be reached
+      response.body = { message: "This should never be returned" };
+    description: "Test execution timeout"
+  
+  - path: "/error/memory-limit"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Attempt to create a large array that exceeds memory limits
+      const largeArray = [];
+      for (let i = 0; i < 100000000; i++) {
+        largeArray.push("x".repeat(1000));
+      }
+      
+      response.body = { message: "This should never be returned" };
+    description: "Test memory limit"
+  
+  - path: "/error/try-catch"
+    method: "get"
+    type: "javascript"
+    code: |
+      try {
+        // Deliberately cause an error
+        const obj = null;
+        obj.nonExistentProperty = "This will throw";
+      } catch (error) {
+        // Handle the error gracefully
+        response.status = 500;
+        response.body = { 
+          error: "Caught error in route handler",
+          message: error.message 
+        };
+      }
+    description: "Test error handling in try/catch"
+  
+  # Authentication context test
+  - path: "/auth/me"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Test access to authenticated user
+      if (!request.user) {
+        response.status = 401;
+        response.body = { error: "Not authenticated" };
+        return;
+      }
+      
+      response.body = { 
+        user: {
+          id: request.user.id,
+          username: request.user.username,
+          role: request.user.role
+        }
+      };
+    description: "Test authenticated user access"
+  
+  # Complex data processing
+  - path: "/calculate"
+    method: "post"
+    type: "javascript"
+    code: |
+      const { a, b, operation } = request.body;
+      
+      // Validate input
+      if (typeof a !== 'number' || typeof b !== 'number') {
+        response.status = 400;
+        response.body = { error: "Parameters 'a' and 'b' must be numbers" };
+        return;
+      }
+      
+      let result;
+      switch (operation) {
+        case 'add':
+          result = a + b;
+          break;
+        case 'subtract':
+          result = a - b;
+          break;
+        case 'multiply':
+          result = a * b;
+          break;
+        case 'divide':
+          if (b === 0) {
+            response.status = 400;
+            response.body = { error: "Cannot divide by zero" };
+            return;
+          }
+          result = a / b;
+          break;
+        default:
+          response.status = 400;
+          response.body = { error: "Invalid operation" };
+          return;
+      }
+      
+      response.body = { 
+        result,
+        operation,
+        a,
+        b
+      };
+    description: "Calculator that validates input"
+
+# Initial test data
+data:
+  users:
+    - id: 1
+      username: admin
+      email: admin@example.com
+      password: password
+      role: admin
+    
+    - id: 2
+      username: user1
+      email: user1@example.com
+      password: password
+      role: user
+  
+  posts:
+    - id: 1
+      title: "First Post"
+      content: "This is the first post"
+      userId: 1
+      published: true

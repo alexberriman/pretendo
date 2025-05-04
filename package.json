@@ -46,7 +46,8 @@
     "start": "node dist/cjs/cli/index.js",
     "dev": "tsx src/cli/index.ts start examples/simple-api.yml",
     "dev:blog": "tsx src/cli/index.ts start examples/blog-api.yml",
-    "dev:ecommerce": "tsx src/cli/index.ts start examples/e-commerce-api.yml"
+    "dev:ecommerce": "tsx src/cli/index.ts start examples/e-commerce-api.yml",
+    "dev:custom-routes": "tsx src/cli/index.ts start examples/custom-routes-example.yml"
   },
   "keywords": [
     "api",

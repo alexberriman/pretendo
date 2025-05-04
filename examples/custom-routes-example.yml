@@ -1,0 +1,388 @@
+resources:
+  - name: users
+    fields:
+      - name: id
+        type: number
+      - name: username
+        type: string
+        required: true
+      - name: email
+        type: string
+        required: true
+      - name: password
+        type: string
+        required: true
+      - name: role
+        type: string
+        defaultValue: user
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: hasMany
+        resource: posts
+        foreignKey: userId
+
+  - name: posts
+    fields:
+      - name: id
+        type: number
+      - name: title
+        type: string
+        required: true
+      - name: content
+        type: string
+        required: true
+      - name: userId
+        type: number
+        required: true
+      - name: published
+        type: boolean
+        defaultValue: false
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+      - type: hasMany
+        resource: comments
+        foreignKey: postId
+
+  - name: comments
+    fields:
+      - name: id
+        type: number
+      - name: content
+        type: string
+        required: true
+      - name: userId
+        type: number
+        required: true
+      - name: postId
+        type: number
+        required: true
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+      - type: belongsTo
+        resource: posts
+        foreignKey: postId
+
+options:
+  port: 3000
+  corsEnabled: true
+  auth:
+    enabled: true
+    users:
+      - username: admin
+        password: password
+        role: admin
+      - username: user1
+        password: password
+        role: user
+  latency:
+    enabled: true
+    min: 50
+    max: 200
+
+# Custom routes to demonstrate both JSON and JavaScript capabilities
+routes:
+  # Static JSON routes
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "online"
+      version: "1.0.0"
+      uptime: "3d 4h 12m"
+    description: "API status endpoint"
+  
+  - path: "/metrics"
+    method: "get"
+    type: "json"
+    response:
+      users: 153
+      posts: 864
+      comments: 2145
+    description: "API metrics endpoint"
+  
+  - path: "/users/:id/profile"
+    method: "get"
+    type: "json"
+    response:
+      user:
+        id: "{id}"
+        profile:
+          bio: "Profile for user {id}"
+          avatar: "https://example.com/avatars/{id}.jpg"
+    description: "User profile with parameter substitution"
+
+  # JavaScript routes
+  - path: "/echo"
+    method: "post"
+    type: "javascript"
+    code: |
+      // Simple echo endpoint that returns the request body
+      const { body } = request;
+      response.body = { 
+        message: "You sent:", 
+        data: body,
+        timestamp: new Date().toISOString()
+      };
+    description: "Echo back the request body"
+  
+  - path: "/calculate"
+    method: "post"
+    type: "javascript"
+    code: |
+      // Calculator endpoint that demonstrates request validation
+      const { a, b, operation } = request.body;
+      
+      // Validate input
+      if (typeof a !== 'number' || typeof b !== 'number') {
+        response.status = 400;
+        response.body = { error: "Parameters 'a' and 'b' must be numbers" };
+        return;
+      }
+      
+      let result;
+      switch (operation) {
+        case 'add':
+          result = a + b;
+          break;
+        case 'subtract':
+          result = a - b;
+          break;
+        case 'multiply':
+          result = a * b;
+          break;
+        case 'divide':
+          if (b === 0) {
+            response.status = 400;
+            response.body = { error: "Cannot divide by zero" };
+            return;
+          }
+          result = a / b;
+          break;
+        default:
+          response.status = 400;
+          response.body = { error: "Invalid operation. Use 'add', 'subtract', 'multiply', or 'divide'" };
+          return;
+      }
+      
+      response.body = { 
+        result,
+        operation,
+        a,
+        b
+      };
+    description: "Calculator endpoint with validation"
+  
+  - path: "/stats/summary"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Advanced endpoint that calculates statistics from the database
+      try {
+        // Get data from multiple resources
+        const users = await db.getResources("users");
+        const posts = await db.getResources("posts");
+        const comments = await db.getResources("comments");
+        
+        // Calculate statistics
+        const stats = {
+          userCount: users.length,
+          postCount: posts.length,
+          commentCount: comments.length,
+          averageCommentsPerPost: posts.length ? comments.length / posts.length : 0,
+          topContributors: users
+            .map(user => {
+              const userPosts = posts.filter(post => post.userId === user.id);
+              return {
+                id: user.id,
+                username: user.username,
+                postCount: userPosts.length
+              };
+            })
+            .sort((a, b) => b.postCount - a.postCount)
+            .slice(0, 5)
+        };
+        
+        response.body = { 
+          timestamp: new Date().toISOString(),
+          stats
+        };
+      } catch (error) {
+        console.error("Error generating stats:", error);
+        response.status = 500;
+        response.body = { error: "Failed to generate statistics" };
+      }
+    description: "Aggregated statistics from multiple resources"
+    
+  - path: "/search"
+    method: "get"
+    type: "javascript"
+    code: |
+      // Search endpoint that can search across multiple resources
+      const { q, resources, limit = 10 } = request.query;
+      
+      if (!q) {
+        response.status = 400;
+        response.body = { error: "Search query parameter 'q' is required" };
+        return;
+      }
+      
+      const searchTerm = String(q).toLowerCase();
+      const resourcesToSearch = resources ? String(resources).split(',') : ['users', 'posts', 'comments'];
+      const results = {};
+      const validResources = ['users', 'posts', 'comments'];
+      
+      try {
+        // Only search valid resources
+        for (const resource of resourcesToSearch) {
+          if (!validResources.includes(resource)) {
+            continue;
+          }
+          
+          // Get all resources (in real app you'd use a more efficient filter)
+          const items = await db.getResources(resource);
+          
+          // Simple search implementation
+          results[resource] = items
+            .filter(item => {
+              // Search in all string values
+              return Object.entries(item).some(([key, value]) => {
+                if (typeof value === 'string') {
+                  return value.toLowerCase().includes(searchTerm);
+                }
+                return false;
+              });
+            })
+            .slice(0, Number(limit));
+        }
+        
+        response.body = { 
+          query: searchTerm,
+          resources: resourcesToSearch,
+          results,
+          count: Object.values(results).reduce((total, items: any[]) => total + items.length, 0)
+        };
+      } catch (error) {
+        console.error("Search error:", error);
+        response.status = 500;
+        response.body = { error: "Failed to perform search" };
+      }
+    description: "Search across multiple resources"
+  
+  - path: "/auth/token"
+    method: "post"
+    type: "javascript"
+    code: |
+      // Custom authentication endpoint
+      const { username, password } = request.body;
+      
+      if (!username || !password) {
+        response.status = 400;
+        response.body = { error: "Username and password are required" };
+        return;
+      }
+      
+      try {
+        // Get user from database
+        const users = await db.getResources("users", {
+          filters: [
+            { field: "username", operator: "eq", value: username }
+          ]
+        });
+        
+        if (users.length === 0 || users[0].password !== password) {
+          response.status = 401;
+          response.body = { error: "Invalid credentials" };
+          return;
+        }
+        
+        const user = users[0];
+        
+        // Generate simple token (in a real app, you'd use proper JWT)
+        const token = `mock-token-${username}-${Date.now()}`;
+        
+        // Custom headers
+        response.headers["x-auth-type"] = "custom";
+        
+        // Return the token and user info
+        response.body = {
+          token,
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),  // 1 hour from now
+          user: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          }
+        };
+      } catch (error) {
+        console.error("Authentication error:", error);
+        response.status = 500;
+        response.body = { error: "Authentication failed" };
+      }
+    description: "Custom authentication endpoint"
+
+data:
+  users:
+    - id: 1
+      username: admin
+      email: admin@example.com
+      password: password
+      role: admin
+    
+    - id: 2
+      username: user1
+      email: user1@example.com
+      password: password
+      role: user
+    
+    - id: 3
+      username: jane_doe
+      email: jane@example.com
+      password: password
+      role: user
+  
+  posts:
+    - id: 1
+      title: "Introduction to Pretendo"
+      content: "Pretendo is a powerful mock API server"
+      userId: 1
+      published: true
+    
+    - id: 2
+      title: "Using Custom Routes"
+      content: "Learn how to define custom routes in Pretendo"
+      userId: 1
+      published: true
+    
+    - id: 3
+      title: "My First Post"
+      content: "This is my first post using Pretendo"
+      userId: 2
+      published: true
+  
+  comments:
+    - id: 1
+      content: "Great introduction!"
+      userId: 2
+      postId: 1
+    
+    - id: 2
+      content: "Custom routes are amazing"
+      userId: 3
+      postId: 2
+    
+    - id: 3
+      content: "I learned a lot from this post"
+      userId: 3
+      postId: 1
