@@ -8,6 +8,7 @@ import './resources/products.test';
 import './resources/orders.test';
 import './resources/categories.test';
 import './resources/reviews.test';
+import './resources/uuid-resources.test';
 import './admin/admin.test';
 import './custom-routes/custom-routes-simple.test';
 

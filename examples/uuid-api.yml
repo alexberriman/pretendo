@@ -1,0 +1,132 @@
+# UUID API Example
+# Example showing how to use UUIDs as primary keys
+
+resources:
+  # Users resource with UUID primary key
+  - name: users
+    fields:
+      - name: id
+        type: uuid
+      - name: name
+        type: string
+      - name: email
+        type: string
+    relationships:
+      - type: hasMany
+        resource: posts
+        foreignKey: userId
+      - type: hasMany
+        resource: comments
+        foreignKey: userId
+
+  # Posts resource with UUID primary key
+  - name: posts
+    fields:
+      - name: id
+        type: uuid
+      - name: title
+        type: string
+      - name: content
+        type: string
+      - name: userId
+        type: uuid
+        required: true
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+      - type: hasMany
+        resource: comments
+        foreignKey: postId
+
+  # Comments resource with UUID primary key
+  - name: comments
+    fields:
+      - name: id
+        type: uuid
+      - name: content
+        type: string
+        required: true
+      - name: postId
+        type: uuid
+        required: true
+      - name: userId
+        type: uuid
+        required: true
+      - name: createdAt
+        type: date
+        defaultValue: $now
+    relationships:
+      - type: belongsTo
+        resource: posts
+        foreignKey: postId
+      - type: belongsTo
+        resource: users
+        foreignKey: userId
+
+# Configuration options
+options:
+  port: 3000
+  corsEnabled: true
+  defaultPageSize: 10
+  maxPageSize: 50
+  auth:
+    enabled: false
+
+# Custom routes
+routes:
+  - path: "/status"
+    method: "get"
+    type: "json"
+    response:
+      status: "online"
+      version: "1.0.0"
+      apiName: "UUID API Example"
+    description: "API status endpoint"
+  
+  - path: "/users/:id/profile"
+    method: "get"
+    type: "json"
+    response:
+      userId: "{id}"
+      profile:
+        avatar: "https://example.com/avatars/{id}.png"
+        dateJoined: "2023-01-01T00:00:00Z"
+    description: "User profile information"
+
+# Initial data (UUIDs will be generated automatically)
+data:
+  users:
+    - id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+      name: John Doe
+      email: john@example.com
+    - id: "550e8400-e29b-41d4-a716-446655440000"
+      name: Jane Smith
+      email: jane@example.com
+
+  posts:
+    - id: "123e4567-e89b-12d3-a456-426614174000"
+      title: Introduction to UUIDs
+      content: "This post explains how to use UUIDs in your API design."
+      userId: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+      createdAt: "2023-01-10T12:00:00Z"
+    - id: "c73bcdcc-2669-4bf6-81d3-e4ae73fb11fd"
+      title: Building scalable systems
+      content: "Learn how to design systems that scale effectively."
+      userId: "550e8400-e29b-41d4-a716-446655440000"
+      createdAt: "2023-01-15T09:30:00Z"
+
+  comments:
+    - id: "6fa459ea-ee8a-3ca4-894e-db77e160355e"
+      content: "Great post! Very informative."
+      postId: "123e4567-e89b-12d3-a456-426614174000"
+      userId: "550e8400-e29b-41d4-a716-446655440000"
+      createdAt: "2023-01-10T14:30:00Z"
+    - id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+      content: "Thanks for sharing this!"
+      postId: "123e4567-e89b-12d3-a456-426614174000"
+      userId: "550e8400-e29b-41d4-a716-446655440000"
+      createdAt: "2023-01-11T09:15:00Z"

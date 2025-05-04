@@ -1,6 +1,6 @@
 export type ResourceField = {
   name: string;
-  type: "string" | "number" | "boolean" | "object" | "array" | "date";
+  type: "string" | "number" | "boolean" | "object" | "array" | "date" | "uuid";
   required?: boolean;
   defaultValue?: unknown;
   description?: string;

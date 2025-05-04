@@ -40,6 +40,7 @@ export const configSchema = {
                     "object",
                     "array",
                     "date",
+                    "uuid",
                   ],
                   description: "Field data type",
                 },
