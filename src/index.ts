@@ -30,6 +30,10 @@ import {
   ok,
   err,
   DatabaseService,
+  RouteConfigurator,
+  LifecycleHooks,
+  ExecuteJsContext,
+  ExecuteJsResult,
 } from "./types/index.js";
 import { parseFromObject } from "./config/index.js";
 import { createDatabaseService } from "./database/index.js";
@@ -54,6 +58,40 @@ export interface CreateMockApiOptions {
    * Optional port to run the server on
    */
   port?: number;
+
+  /**
+   * Optional host to bind the server to
+   */
+  host?: string;
+
+  /**
+   * Reset the database before starting the server
+   */
+  resetDatabase?: boolean;
+
+  /**
+   * Type of server adapter to use (defaults to "express")
+   */
+  adapterType?: string;
+
+  /**
+   * Function to configure custom routes
+   * @param router The router instance (Express Router for default adapter)
+   */
+  routes?: RouteConfigurator;
+
+  /**
+   * Lifecycle hooks to customize server behavior
+   */
+  hooks?: LifecycleHooks;
+
+  /**
+   * Custom execute function for JavaScript routes
+   * This allows for secure, isolated JavaScript execution
+   * @param context The execution context (code, request, etc.)
+   * @returns A promise with the execution result
+   */
+  executeJs?: (context: ExecuteJsContext) => Promise<ExecuteJsResult>;
 }
 
 /**
@@ -65,7 +103,16 @@ export async function createMockApi(
   options: CreateMockApiOptions,
 ): Promise<Result<Server, Error>> {
   try {
-    const { spec, database: customDatabase, port } = options;
+    const {
+      spec,
+      database: customDatabase,
+      port,
+      host,
+      adapterType,
+      routes: customRoutes,
+      hooks,
+      executeJs,
+    } = options;
 
     // Validate config
     const configResult = parseFromObject(spec);
@@ -84,13 +131,30 @@ export async function createMockApi(
       if (!initResult.ok) {
         return err(initResult.error);
       }
+
+      // Reset database if requested
+      if (options.resetDatabase) {
+        const resetResult = await database.reset();
+        if (!resetResult.ok) {
+          return err(resetResult.error);
+        }
+      }
     }
 
-    // Create server
-    const server = createServer(validConfig, database);
+    // Create server with the specified adapter type
+    const serverOptions: import("./types/api.js").ServerOptions = {
+      adapterType,
+      routes: customRoutes,
+      hooks,
+      executeJs: executeJs as unknown as (
+        context: import("./types/api.js").ExecuteJsContext,
+      ) => Promise<import("./types/api.js").ExecuteJsResult>,
+    };
+
+    const server = createServer(validConfig, database, serverOptions);
 
     // Start server
-    const startResult = await server.start(port);
+    const startResult = await server.start(port, host);
     if (!startResult.ok) {
       return err(startResult.error);
     }

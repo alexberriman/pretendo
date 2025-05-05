@@ -195,6 +195,124 @@ The hook must return a `Promise` that resolves to an object with the following p
 | `headers` | object | HTTP headers to include in the response |
 | `body` | any | Response body (will be automatically converted to JSON) |
 
+## Custom Routes via Programmatic API
+
+When using Pretendo programmatically with `createMockApi()`, you have additional options to register custom routes and hooks directly:
+
+### Registering Custom Routes Programmatically
+
+You can register custom routes directly using the familiar Express-style router:
+
+```javascript
+import { createMockApi } from "pretendo";
+
+const api = await createMockApi({
+  spec: {
+    resources: [
+      {
+        name: "users",
+        fields: [
+          { name: "id", type: "number" },
+          { name: "name", type: "string" },
+        ],
+      },
+    ],
+    options: {
+      port: 3000,
+    },
+  },
+  // Register custom routes using the routes option
+  routes: (router) => {
+    router.get("/health", (req, res) => {
+      res.json({ status: "ok" });
+    });
+    
+    router.post("/echo", (req, res) => {
+      res.json({ 
+        message: "Echo service",
+        body: req.body 
+      });
+    });
+    
+    // Support for route parameters
+    router.get("/users/:id/profile", (req, res) => {
+      const userId = req.params.id;
+      res.json({
+        userId,
+        profile: {
+          avatar: `https://example.com/avatars/${userId}.jpg`,
+        }
+      });
+    });
+  }
+});
+
+await api.listen();
+```
+
+This programmatic approach gives you full access to Express router capabilities including middleware, parameter validation, and complex route handlers.
+
+### Adding Lifecycle Hooks
+
+You can also register lifecycle hooks to customize server behavior:
+
+```javascript
+import { createMockApi } from "pretendo";
+
+const api = await createMockApi({
+  spec: {
+    resources: [...],
+    options: {...}
+  },
+  // Register lifecycle hooks
+  hooks: {
+    // Execute before request processing
+    onRequest: (req, res, next) => {
+      console.log(`Request received: ${req.method} ${req.path}`);
+      next();
+    },
+    
+    // Execute before route handler
+    beforeRoute: (req, res, next) => {
+      // Add custom headers or modify request
+      res.setHeader("X-Powered-By", "My App");
+      next();
+    },
+    
+    // Execute after route handler (if response not sent)
+    afterRoute: (req, res, next) => {
+      // Modify response if needed
+      next();
+    },
+    
+    // Handle errors
+    onError: (err, req, res, next) => {
+      console.error("Request error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  }
+});
+
+await api.listen();
+```
+
+Multiple hooks can be registered for each lifecycle event by providing an array of functions:
+
+```javascript
+hooks: {
+  onRequest: [
+    (req, res, next) => {
+      // First hook
+      next();
+    },
+    (req, res, next) => {
+      // Second hook, executed after the first
+      next();
+    }
+  ]
+}
+```
+
 ### Example: Secure Execution in Kubernetes
 
 Here's a more complete example of using the `executeJs` hook to securely execute JavaScript in isolated Kubernetes pods:

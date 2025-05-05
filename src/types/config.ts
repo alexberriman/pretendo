@@ -236,23 +236,6 @@ export type ApiOptions = {
   };
 
   /**
-   * OpenAPI documentation configuration
-   */
-  docs?: {
-    /**
-     * Whether the OpenAPI documentation endpoint is enabled
-     * Default: true in development, false in production
-     */
-    enabled?: boolean;
-
-    /**
-     * Whether to require authentication for the documentation endpoint
-     * Default: false in development, true in production
-     */
-    requireAuth?: boolean;
-  };
-
-  /**
    * Optional hook to override JavaScript execution for custom routes.
    * If provided, Pretendo will use this function instead of its internal JavaScript execution engine.
    * This is useful for executing untrusted code in a secure, isolated environment.
