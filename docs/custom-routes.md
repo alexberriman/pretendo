@@ -604,6 +604,6 @@ The special `*` wildcard role allows any authenticated user:
 
 ## Next Steps
 
-Return to the [Table of Contents](./README.md) to explore more documentation topics.
+Learn about [OpenAPI Documentation](./openapi-docs.md) in the next section.
 
-**← [API Schema](./schema.md) | [Table of Contents](./README.md)**
+**← [API Schema](./schema.md) | [Table of Contents](./README.md) | [Next: OpenAPI Documentation →](./openapi-docs.md)**

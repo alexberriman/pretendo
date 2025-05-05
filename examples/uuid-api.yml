@@ -75,6 +75,9 @@ options:
   maxPageSize: 50
   auth:
     enabled: false
+  docs:
+    enabled: true
+    requireAuth: false
 
 # Custom routes
 routes:

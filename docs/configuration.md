@@ -96,6 +96,13 @@ options:
 | `routes.admin` | boolean | `true` | Enable admin endpoints |
 | `routes.custom` | array | `[]` | Custom route definitions |
 
+### API Documentation
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `docs.enabled` | boolean | `true` in dev, `false` in prod | Enable the OpenAPI documentation endpoint |
+| `docs.requireAuth` | boolean | `false` in dev, `true` in prod | Require authentication for the docs endpoint |
+
 ### Validation and Rules
 
 | Option | Type | Default | Description |
@@ -165,6 +172,11 @@ options:
         password: 'password'
         role: 'user'
     endpoints: true
+  
+  # API Documentation
+  docs:
+    enabled: true      # Enable OpenAPI documentation endpoint
+    requireAuth: false # Allow public access in development
   
   # Routes and endpoints
   routes:
