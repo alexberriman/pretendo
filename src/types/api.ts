@@ -100,11 +100,78 @@ export interface LogManager {
   clearLogs: () => void;
 }
 
+export interface HttpRequest {
+  params: Record<string, string | string[]>;
+  query: Record<string, string | string[]>;
+  body: unknown;
+  headers: Record<string, string | string[] | undefined>;
+  method: string;
+  path: string;
+  user?: {
+    id: string | number;
+    username: string;
+    role?: string;
+  };
+  [key: string]: unknown;
+}
+
+export interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (body: unknown) => void;
+  send: (body: string) => void;
+  setHeader: (name: string, value: string) => void;
+  headersSent: boolean;
+  [key: string]: unknown;
+}
+
+export type NextFn = (error?: unknown) => void;
+
+export type RequestHandler = (
+  req: HttpRequest,
+  res: HttpResponse,
+  next: NextFn,
+) => void | Promise<void>;
+
+export type RouteConfigurator = (router: unknown) => void;
+
+export type LifecycleHooks = {
+  onRequest?: RequestHandler | RequestHandler[];
+  onResponse?: RequestHandler | RequestHandler[];
+  onError?: RequestHandler | RequestHandler[];
+  beforeRoute?: RequestHandler | RequestHandler[];
+  afterRoute?: RequestHandler | RequestHandler[];
+  [key: string]: RequestHandler | RequestHandler[] | undefined;
+};
+
+export interface ExecuteJsContext {
+  code: string;
+  request: HttpRequest;
+  db: DatabaseService;
+  log: (message: string, ...args: unknown[]) => void;
+}
+
+export interface ExecuteJsResult {
+  status?: number;
+  headers?: Record<string, string>;
+  body: unknown;
+}
+
+export type ServerOptions = {
+  adapterType?: string;
+  routes?: RouteConfigurator;
+  hooks?: LifecycleHooks;
+  executeJs?: (context: ExecuteJsContext) => Promise<ExecuteJsResult>;
+};
+
 export type Server = {
-  start: (port?: number) => Promise<Result<void, Error>>;
+  start: (port?: number, host?: string) => Promise<Result<void, Error>>;
   stop: () => Promise<Result<void, Error>>;
   getUrl: () => string;
   logs: LogManager;
+  /**
+   * Access to the server adapter for advanced operations
+   */
+  getAdapter?: () => unknown;
 };
 
 export interface Store {

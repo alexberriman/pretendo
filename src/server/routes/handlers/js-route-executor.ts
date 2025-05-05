@@ -4,6 +4,7 @@ import {
   CustomRoute,
   DatabaseService,
   ExecuteJsContext,
+  ExecuteJsResult,
 } from "../../../types/index.js";
 import { logger } from "../../../utils/debug-logger.js";
 import { createDatabaseContext } from "../utils/db-context.js";
@@ -156,9 +157,19 @@ export const executeJavaScriptCode = async (
   context: Record<string, unknown>,
   req?: Request,
 ): Promise<RouteResponse> => {
-  // Check if the API options include an executeJs hook
+  // First check if the global pretendo executeJs hook is set
+  // This has the highest priority, it's set by createMockApi via the ServerOptions
+  const globalHook = (
+    global as unknown as {
+      __pretendoExecuteJs?: (
+        context: ExecuteJsContext,
+      ) => Promise<ExecuteJsResult>;
+    }
+  ).__pretendoExecuteJs;
+
+  // If no global hook, fall back to API config option
   const apiConfig = (req as unknown as { apiConfig?: ApiConfig })?.apiConfig;
-  const executeJsHook = apiConfig?.options?.executeJs;
+  const executeJsHook = globalHook || apiConfig?.options?.executeJs;
 
   // If executeJsHook is provided, use it instead of the internal execution
   if (executeJsHook && req) {

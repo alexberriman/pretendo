@@ -1,5 +1,46 @@
-export * from "./api.js";
-export * from "./config.js";
+// Export from "./api.js" - specify each to avoid name conflicts
+export type {
+  DatabaseService,
+  Server,
+  Store,
+  RouteHandler,
+  QueryFilter,
+  QuerySort,
+  QueryOptions,
+  DbRecord,
+  ResourceOperation,
+  LogEntry,
+  LogManager,
+  HttpRequest,
+  HttpResponse,
+  NextFn,
+  RequestHandler,
+  RouteConfigurator,
+  LifecycleHooks,
+  ServerOptions,
+} from "./api.js";
+
+// Export from "./config.js" - specify each to avoid name conflicts
+export type {
+  ResourceField,
+  Relationship,
+  ResourceAccessControl,
+  CustomRouteType,
+  CustomRouteAccessControl,
+  CustomRoute,
+  Resource,
+  AuthConfig,
+  LatencyConfig,
+  ErrorSimulationConfig,
+  ExecuteJsContext,
+  ExecuteJsResult,
+  DatabaseAdapterType,
+  DatabaseConfig,
+  ApiOptions,
+  ApiConfig,
+} from "./config.js";
+
+// Export everything from result and utils
 export * from "./result.js";
 export * from "./utils.js";
 

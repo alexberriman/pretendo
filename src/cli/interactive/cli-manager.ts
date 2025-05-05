@@ -30,9 +30,16 @@ export class InteractiveCliManager {
   private commands: Map<string, (args: string[]) => Promise<void>>;
   private running: boolean = false;
 
-  constructor(server: Server, database: DatabaseService, config: ApiConfig) {
+  constructor(
+    server: Server,
+    database: DatabaseService | null,
+    config: ApiConfig,
+  ) {
     this.server = server;
-    this.database = database;
+    // If database is null, try to get it from the server
+    this.database =
+      database ||
+      ((server as unknown as { db?: DatabaseService })?.db as DatabaseService);
     this.config = config;
 
     // Create readline interface

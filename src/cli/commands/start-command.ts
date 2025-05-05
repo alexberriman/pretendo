@@ -1,5 +1,4 @@
-import { createDatabaseService } from "../../database/index.js";
-import { createServer } from "../../server/index.js";
+import { createMockApi } from "../../index.js";
 import { parseFromYaml } from "../../config/index.js";
 import { applyCliOptions } from "../config/options.js";
 import { resolveFileLocation } from "../utils/path-resolver.js";
@@ -39,56 +38,38 @@ export const startCommandHandler = async (
     // Apply CLI options to config
     applyCliOptions(config, options);
 
-    // Create database service
-    const database = createDatabaseService(config);
-
-    // Initialize database
-    logInfo(chalk.blue("Initializing database..."));
-    const initResult = await database.initialize(config);
-
-    if (initResult.ok === false) {
-      logError(
-        chalk.red("Error initializing database:"),
-        initResult.error.message,
-      );
-      process.exit(1);
-    }
-
-    // Reset database if requested
-    if (options.reset === true) {
-      logInfo(chalk.yellow("Resetting database..."));
-      const resetResult = await database.reset();
-
-      if (resetResult.ok === false) {
-        logError(
-          chalk.red("Error resetting database:"),
-          resetResult.error.message,
-        );
-        process.exit(1);
-      }
-    }
-
-    // Create server
-    const server = createServer(config, database);
-
-    // Start server
+    // Get the port from options or config
     const port = options.port
       ? parseInt(String(options.port), 10)
       : config.options?.port;
-    logInfo(chalk.blue("Starting server..."));
-    const startResult = await server.start(port);
 
-    if (startResult.ok === false) {
-      logError(chalk.red("Error starting server:"), startResult.error.message);
+    // Use createMockApi to create and start the server
+    logInfo(chalk.blue("Initializing server..."));
+
+    // Create options for the mock API
+    const mockApiOptions = {
+      spec: config,
+      port: port,
+      // Handle reset option
+      resetDatabase: options.reset === true,
+    };
+
+    // Create and start the mock API
+    const result = await createMockApi(mockApiOptions);
+
+    if (!result.ok) {
+      logError(chalk.red("Error creating mock API:"), result.error.message);
       process.exit(1);
     }
+
+    const server = result.value;
 
     // Check if interactive mode is enabled (default is true)
     const interactiveMode = options.interactive !== false;
 
     if (interactiveMode) {
-      // Start interactive CLI
-      const cli = new InteractiveCliManager(server, database, config);
+      // Start interactive CLI - use null for database as it's already encapsulated in the server
+      const cli = new InteractiveCliManager(server, null, config);
       const cliResult = await cli.start();
 
       if (cliResult.ok === false) {

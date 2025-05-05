@@ -143,6 +143,8 @@ For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
 
 ### Programmatic Usage
 
+Pretendo can be used programmatically in your Node.js applications:
+
 ```typescript
 import { createMockApi } from "pretendo";
 
@@ -173,6 +175,63 @@ async function startServer() {
 
 startServer();
 ```
+
+#### Extended Programmatic Features
+
+Pretendo offers powerful programmatic features for advanced use cases:
+
+```typescript
+import { createMockApi } from "pretendo";
+
+const api = await createMockApi({
+  // API specification
+  spec: {
+    resources: [/* resources */],
+    options: {/* options */}
+  },
+  
+  // Add custom routes
+  routes: (router) => {
+    router.get('/health', (req, res) => {
+      res.json({ status: 'ok' });
+    });
+    
+    router.post('/webhook', (req, res) => {
+      // Process webhook
+      res.status(202).json({ received: true });
+    });
+  },
+  
+  // Add lifecycle hooks
+  hooks: {
+    onRequest: (req, res, next) => {
+      // Log all requests
+      console.log(`${req.method} ${req.path}`);
+      next();
+    },
+    beforeRoute: (req, res, next) => {
+      // Add custom header
+      res.setHeader('X-Custom-Header', 'Value');
+      next();
+    }
+  },
+  
+  // Custom JS execution (for secure isolation)
+  executeJs: async (context) => {
+    // Custom JavaScript execution
+    // This can be used to run code in a secure environment
+    return {
+      status: 200,
+      headers: {},
+      body: { result: 'secure execution' }
+    };
+  }
+});
+
+await api.listen();
+```
+
+See the [Custom Routes documentation](./docs/custom-routes.md) for more details on programmatic usage.
 
 ## 🔄 REST API Features
 
