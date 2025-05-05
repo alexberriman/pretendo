@@ -62,7 +62,10 @@ export const findRelated = (
 
     // Apply field selection
     if (queryOptions.fields) {
-      relatedRecords = selectFields(relatedRecords, queryOptions.fields);
+      relatedRecords = selectFields(
+        relatedRecords,
+        queryOptions.fields,
+      ) as DbRecord[];
     }
   }
 

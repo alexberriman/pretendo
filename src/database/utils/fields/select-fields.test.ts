@@ -25,9 +25,22 @@ describe("selectFields", () => {
     },
   ];
 
+  // Single record for testing
+  const record: DbRecord = {
+    id: 3,
+    name: "Product 3",
+    description: "Description for product 3",
+    price: 39.99,
+    category: "Books",
+    tags: ["reading", "education"],
+    inStock: true,
+  };
+
   it("should return all records unchanged when no fields are specified", () => {
     expect(selectFields(records)).toEqual(records);
     expect(selectFields(records, [])).toEqual(records);
+    expect(selectFields(record)).toEqual(record);
+    expect(selectFields(record, [])).toEqual(record);
   });
 
   it("should select only specified fields for all records", () => {
@@ -90,11 +103,26 @@ describe("selectFields", () => {
 
   it("should not modify the original records", () => {
     const originalRecords = JSON.parse(JSON.stringify(records));
+    const originalRecord = JSON.parse(JSON.stringify(record));
     const fields = ["id", "name"];
 
     selectFields(records, fields);
+    selectFields(record, fields);
 
     // Original records should remain unmodified
     expect(records).toEqual(originalRecords);
+    expect(record).toEqual(originalRecord);
+  });
+
+  it("should select only specified fields for a single record", () => {
+    const fields = ["id", "name", "price"];
+    const result = selectFields(record, fields) as DbRecord;
+
+    // Check that only specified fields are selected
+    expect(Object.keys(result)).toHaveLength(3);
+    expect(result.id).toBe(3);
+    expect(result.name).toBe("Product 3");
+    expect(result.price).toBe(39.99);
+    expect(result.description).toBeUndefined();
   });
 });

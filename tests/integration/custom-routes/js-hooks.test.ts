@@ -136,7 +136,7 @@ async function createJsHookTestServer(): Promise<JsHookTestServer> {
   );
 
   // Create the test server
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec: config });
 
   if (!result.ok) {
     throw new Error(`Failed to create JS hook test server: ${result.error.message}`);

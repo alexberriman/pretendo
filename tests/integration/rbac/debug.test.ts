@@ -53,7 +53,7 @@ describe('Debug RBAC Implementation', () => {
     };
 
     // Create the server with debug logging
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create test server: ${result.error.message}`);
     }

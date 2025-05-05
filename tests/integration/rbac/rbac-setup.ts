@@ -67,7 +67,7 @@ export async function createRbacTestServer(): Promise<TestServer> {
   
   // Create the test server
   console.log("Creating RBAC test server...");
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec: config });
 
   if (!result.ok) {
     throw new Error(`Failed to create RBAC test server: ${result.error.message}`);

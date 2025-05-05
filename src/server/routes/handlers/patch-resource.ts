@@ -75,7 +75,12 @@ export const patchResourceHandler = (db: DatabaseService) => {
     // Update the record (partial update)
     const result = await resource.patch(id, dataToUpdate);
     if (!result.ok) {
-      return sendOperationError(res, "patch", result.error.message, 500);
+      // Check if the error is a validation error
+      const errorMessage = result.error.message;
+      if (errorMessage.includes("Validation failed")) {
+        return sendOperationError(res, "patch", errorMessage, 400);
+      }
+      return sendOperationError(res, "patch", errorMessage, 500);
     }
 
     // Return the updated record

@@ -34,7 +34,7 @@ describe('Minimal Test for RBAC', () => {
 
   beforeAll(async () => {
     // Create server
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       console.error("Server creation error:", result.error);
       throw new Error(`Failed to create test server: ${result.error.message}`);

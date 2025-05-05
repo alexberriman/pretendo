@@ -62,11 +62,14 @@ describe('Custom Routes API (Simple)', () => {
         errorSimulation: {
           enabled: false,
         },
+        database: {
+          adapter: "memory", // Use in-memory adapter for tests
+        },
       },
     };
 
     // Test configuration
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create test server: ${result.error.message}`);
     }

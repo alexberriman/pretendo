@@ -63,7 +63,7 @@ export async function createCustomRoutesTestServer(): Promise<CustomRouteTestSer
   config.options.errorSimulation = { enabled: false };
 
   // Create the test server
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec: config });
 
   if (!result.ok) {
     throw new Error(`Failed to create custom routes test server: ${result.error.message}`);

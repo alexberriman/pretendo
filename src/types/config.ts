@@ -161,6 +161,43 @@ export type ExecuteJsResult = {
   body: unknown;
 };
 
+export type DatabaseAdapterType = "json-file" | "memory" | string;
+
+export type DatabaseConfig = {
+  /**
+   * Type of database adapter to use.
+   * Built-in options: "json-file" (default), "memory"
+   * Can also be a custom adapter instance.
+   */
+  adapter?: DatabaseAdapterType | object;
+
+  /**
+   * Path to the database file (for json-file adapter)
+   */
+  dbPath?: string;
+
+  /**
+   * Whether to automatically save changes to disk (for json-file adapter)
+   */
+  autoSave?: boolean;
+
+  /**
+   * Interval between auto-saves in milliseconds (for json-file adapter)
+   * Default is 5000ms (5 seconds)
+   */
+  saveInterval?: number;
+
+  /**
+   * Whether to enable strict validation for resource fields
+   */
+  strictValidation?: boolean;
+
+  /**
+   * Custom adapter-specific options
+   */
+  [key: string]: unknown;
+};
+
 export type ApiOptions = {
   port?: number; // Default 3000
   host?: string; // Default localhost
@@ -168,12 +205,35 @@ export type ApiOptions = {
   auth?: AuthConfig;
   latency?: LatencyConfig;
   errorSimulation?: ErrorSimulationConfig;
-  dbPath?: string; // Path to JSON storage file
+  dbPath?: string; // Legacy path to JSON storage file (deprecated, use database.dbPath instead)
   logRequests?: boolean;
   logMaxEntries?: number; // Maximum number of log entries to keep in memory (default: 1000)
   allowPartialResponses?: boolean; // For fields param support
   defaultPageSize?: number; // Default page size for pagination
   maxPageSize?: number; // Maximum allowed page size
+  strictValidation?: boolean; // Whether to enable strict validation for resource fields
+
+  /**
+   * Database configuration options
+   */
+  database?: DatabaseConfig;
+
+  /**
+   * OpenAPI documentation configuration
+   */
+  docs?: {
+    /**
+     * Whether the OpenAPI documentation endpoint is enabled
+     * Default: true in development, false in production
+     */
+    enabled?: boolean;
+
+    /**
+     * Whether to require authentication for the documentation endpoint
+     * Default: false in development, true in production
+     */
+    requireAuth?: boolean;
+  };
 
   /**
    * OpenAPI documentation configuration

@@ -176,7 +176,7 @@ describe('Custom Field Mappings', () => {
     config.options.dbPath = testDbPath;
     
     // Create the server
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     
     if (!result.ok) {
       throw new Error(`Failed to create custom user server: ${result.error.message}`);

@@ -258,7 +258,7 @@ You can also use Pretendo in your JavaScript/TypeScript applications:
 ```typescript
 import { createMockApi } from "pretendo";
 
-const config = {
+const spec = {
   resources: [
     // Your resources definition here (same as in YAML)
   ],
@@ -269,7 +269,7 @@ const config = {
 };
 
 async function startServer() {
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec });
 
   if (result.ok) {
     console.log(`Server running at: ${result.value.getUrl()}`);

@@ -74,7 +74,12 @@ export const updateResourceHandler = (db: DatabaseService) => {
     // Update the record (full replace)
     const result = await resource.update(id, dataToUpdate);
     if (!result.ok) {
-      return sendOperationError(res, "update", result.error.message, 500);
+      // Check if the error is a validation error
+      const errorMessage = result.error.message;
+      if (errorMessage.includes("Validation failed")) {
+        return sendOperationError(res, "update", errorMessage, 400);
+      }
+      return sendOperationError(res, "update", errorMessage, 500);
     }
 
     // Return the updated record

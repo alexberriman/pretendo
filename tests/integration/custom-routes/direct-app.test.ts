@@ -73,7 +73,7 @@ describe('Direct App Custom Routes Test', () => {
     
     // Output the config for debugging - removed console.log for linting
     
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create test server: ${result.error.message}`);
     }
