@@ -31,6 +31,9 @@ options:
       - username: user
         password: password
         role: user
+  docs:
+    enabled: true
+    requireAuth: false
 
 routes:
   - path: "/hello"

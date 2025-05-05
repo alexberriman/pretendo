@@ -90,6 +90,9 @@ options:
     enabled: true
     min: 50
     max: 200
+  docs:
+    enabled: true
+    requireAuth: false
 
 # Custom routes to demonstrate both JSON and JavaScript capabilities
 routes:

@@ -16,6 +16,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [Relationships](./relationships.md)
 - [Special Fields](./special-fields.md)
 - [Custom Routes](./custom-routes.md)
+- [OpenAPI Documentation](./openapi-docs.md)
 - [UUID Support](./uuid-example.md)
 
 ### Query Features
