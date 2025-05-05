@@ -90,6 +90,77 @@ export type ErrorSimulationConfig = {
   queryParamTrigger?: string; // Query param to trigger errors (e.g., ?errorCode=500)
 };
 
+/**
+ * Context for JavaScript code execution
+ */
+export type ExecuteJsContext = {
+  /** The JavaScript code to execute */
+  code: string;
+
+  /** Request information */
+  request: {
+    params: Record<string, string | string[]>;
+    query: Record<string, string | string[]>;
+    body: unknown;
+    headers: Record<string, string | string[] | undefined>;
+    method: string;
+    path: string;
+    user?: {
+      id: string | number;
+      username: string;
+      role?: string;
+    };
+  };
+
+  /** Database operations interface */
+  db: {
+    getResourceById: (
+      resourceName: string,
+      id: string | number,
+    ) => Promise<unknown>;
+    getResources: (
+      resourceName: string,
+      options?: Record<string, unknown>,
+    ) => Promise<unknown[] | null>;
+    createResource: (
+      resourceName: string,
+      data: Record<string, unknown>,
+    ) => Promise<unknown>;
+    updateResource: (
+      resourceName: string,
+      id: string | number,
+      data: Record<string, unknown>,
+    ) => Promise<unknown>;
+    deleteResource: (
+      resourceName: string,
+      id: string | number,
+    ) => Promise<boolean | null>;
+    getRelatedResources: (
+      resourceName: string,
+      id: string | number,
+      relationship: string,
+      options?: Record<string, unknown>,
+    ) => Promise<unknown[] | null>;
+  };
+
+  /** Logging function */
+  log: (message: string, ...args: unknown[]) => void;
+};
+
+/**
+ * Result of JavaScript code execution
+ */
+export type ExecuteJsResult = {
+  /** HTTP status code to return */
+  status: number;
+
+  /** HTTP headers to include in the response */
+  headers: Record<string, string>;
+
+  /** Response body (will be converted to JSON) */
+  body: unknown;
+};
+
 export type ApiOptions = {
   port?: number; // Default 3000
   host?: string; // Default localhost
@@ -103,6 +174,16 @@ export type ApiOptions = {
   allowPartialResponses?: boolean; // For fields param support
   defaultPageSize?: number; // Default page size for pagination
   maxPageSize?: number; // Maximum allowed page size
+
+  /**
+   * Optional hook to override JavaScript execution for custom routes.
+   * If provided, Pretendo will use this function instead of its internal JavaScript execution engine.
+   * This is useful for executing untrusted code in a secure, isolated environment.
+   *
+   * @param context The execution context including code and request information
+   * @returns A promise that resolves to the execution result
+   */
+  executeJs?: (context: ExecuteJsContext) => Promise<ExecuteJsResult>;
 };
 
 export type ApiConfig = {

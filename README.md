@@ -43,7 +43,8 @@ For comprehensive documentation, check out the [docs directory](./docs/README.md
 - **🚀 Zero Setup Required** - Define your API with a straightforward YAML/JSON spec
 - **📄 Remote Schemas** - Load schemas from local files or remote URLs (GitHub URLs supported!)
 - **🔄 Full CRUD Operations** - Auto-generated RESTful endpoints for all resources ([CRUD docs](./docs/crud.md))
-- **📝 Custom Routes** - Define custom JSON and JavaScript routes alongside resource endpoints ([Schema docs](./docs/schema.md))
+- **📝 Custom Routes** - Define custom JSON and JavaScript routes alongside resource endpoints ([Custom Routes docs](./docs/custom-routes.md))
+- **🔒 Secure JavaScript Execution** - Optional pluggable hooks for secure, isolated JavaScript execution ([Custom Routes docs](./docs/custom-routes.md))
 - **✨ Special Field Values** - Computed dynamic values like timestamps, UUIDs, auto-increment, and more ([Special Fields docs](./docs/special-fields.md))
 - **🔗 Advanced Relationships** - Model one-to-many, many-to-many, and belongs-to relationships ([Relationships docs](./docs/relationships.md))
 - **🔍 Rich Querying Capabilities**:

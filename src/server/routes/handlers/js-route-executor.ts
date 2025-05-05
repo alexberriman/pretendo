@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { CustomRoute, DatabaseService } from "../../../types/index.js";
+import {
+  ApiConfig,
+  CustomRoute,
+  DatabaseService,
+  ExecuteJsContext,
+} from "../../../types/index.js";
 import { logger } from "../../../utils/debug-logger.js";
 import { createDatabaseContext } from "../utils/db-context.js";
 import { RouteResponse } from "../utils/js-route-context.js";
@@ -149,7 +154,57 @@ export const handleJsRouteError = (
 export const executeJavaScriptCode = async (
   code: string,
   context: Record<string, unknown>,
+  req?: Request,
 ): Promise<RouteResponse> => {
+  // Check if the API options include an executeJs hook
+  const apiConfig = (req as unknown as { apiConfig?: ApiConfig })?.apiConfig;
+  const executeJsHook = apiConfig?.options?.executeJs;
+
+  // If executeJsHook is provided, use it instead of the internal execution
+  if (executeJsHook && req) {
+    logger.info("Using custom executeJs hook for JavaScript execution");
+
+    try {
+      // Extract the necessary context for the hook
+      const { request, db, log } = context as {
+        request: Record<string, unknown>;
+        db: Record<string, unknown>;
+        log: (...args: unknown[]) => void;
+      };
+
+      // Create the ExecuteJsContext object
+      const hookContext: ExecuteJsContext = {
+        code,
+        request: request as ExecuteJsContext["request"],
+        db: db as ExecuteJsContext["db"],
+        log,
+      };
+
+      // Call the custom execution hook
+      const result = await executeJsHook(hookContext);
+
+      // Return the result
+      return {
+        status: result.status || 200,
+        headers: result.headers || {},
+        body: result.body || { message: "Success" },
+      };
+    } catch (error) {
+      logger.error("Error in custom executeJs hook:", error);
+      return {
+        status: 500,
+        headers: {},
+        body: {
+          error: "Error in custom JavaScript execution hook",
+          message: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  // Default internal execution if no hook provided
+  logger.debug("Using default internal JavaScript execution");
+
   // Use AsyncFunction constructor to support await in the user's code
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
@@ -247,8 +302,12 @@ export const handleJavaScriptRoute = async (
     }, timeoutLimit);
 
     try {
-      // Execute the code
-      const result = await executeJavaScriptCode(customRoute.code, context);
+      // Execute the code, passing the request object to access API config options
+      const result = await executeJavaScriptCode(
+        customRoute.code,
+        context,
+        req,
+      );
 
       // Clear the timeout
       clearTimeout(timeoutId);
