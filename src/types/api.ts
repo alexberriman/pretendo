@@ -126,6 +126,7 @@ export interface Store {
     collection: string,
     record: DbRecord,
     primaryKey?: string,
+    fields?: import("./config.js").ResourceField[],
   ) => Result<DbRecord, Error>;
   updateRecord: (
     collection: string,
@@ -133,6 +134,7 @@ export interface Store {
     updateData: Partial<DbRecord>,
     primaryKey?: string,
     merge?: boolean,
+    fields?: import("./config.js").ResourceField[],
   ) => Result<DbRecord | null, Error>;
   deleteRecord: (
     collection: string,

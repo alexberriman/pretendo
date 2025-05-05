@@ -177,6 +177,32 @@ startServer();
 
 The API design is based on RESTful principles from [GitHub: alexberriman/rest-api-design](https://github.com/alexberriman/rest-api-design). See the [API Design Principles](./docs/api-design.md) documentation for detailed conventions.
 
+### Data Validation
+
+Pretendo provides comprehensive field validation to ensure data integrity:
+
+```yaml
+fields:
+  - name: username
+    type: string
+    required: true
+    minLength: 3
+    maxLength: 50
+    pattern: "^[a-zA-Z0-9_]+$"
+    unique: true
+  
+  - name: age
+    type: number
+    min: 18
+    max: 120
+  
+  - name: role
+    type: string
+    enum: ["admin", "user", "editor"]
+```
+
+See [Resource Validation](./docs/resources.md#field-validation-rules) for complete documentation.
+
 ### CRUD Operations
 
 ```
