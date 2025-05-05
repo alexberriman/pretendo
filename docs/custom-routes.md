@@ -139,29 +139,30 @@ To use this feature, provide an `executeJs` function in your Pretendo configurat
 import { createMockApi } from "pretendo";
 
 const server = await createMockApi({
-  resources: [...],
-  options: {
-    // Other options...
-    
-    executeJs: async (context) => {
-      // context contains: code, request, db, log
-      
-      // Example: Send code to an isolated execution service
-      const result = await isolatedExecutionService.execute(
-        context.code, 
-        {
-          request: context.request,
-          // Pass any other context needed by the code
-        }
-      );
-      
-      // Return the result with proper status, headers and body
-      return {
-        status: result.status || 200,
-        headers: result.headers || {},
-        body: result.data
-      };
+  spec: {
+    resources: [...],
+    options: {
+      // Other options...
     }
+  },
+  executeJs: async (context) => {
+    // context contains: code, request, db, log
+    
+    // Example: Send code to an isolated execution service
+    const result = await isolatedExecutionService.execute(
+      context.code, 
+      {
+        request: context.request,
+        // Pass any other context needed by the code
+      }
+    );
+    
+    // Return the result with proper status, headers and body
+    return {
+      status: result.status || 200,
+      headers: result.headers || {},
+      body: result.data
+    };
   }
 });
 ```
@@ -211,49 +212,52 @@ const executor = new KubernetesExecutor({
 });
 
 const server = await createMockApi({
-  resources: [...],
-  options: {
-    port: 3000,
-    
-    // Override JavaScript execution with secure K8s executor
-    executeJs: async (context) => {
-      try {
-        const { code, request, log } = context;
-        
-        // Log that we're executing code in a secure container
-        log("Executing code in isolated container");
-        
-        // Serialize only what's needed from the DB context
-        // This allows safely passing the database functions to the isolated environment
-        const serializedDbContext = {
-          collections: Object.keys(await context.db.getResources("*")),
-          // Add any other safe-to-serialize DB metadata
-        };
-        
-        // Execute in isolated pod
-        const result = await executor.execute(code, {
-          request,
-          db: serializedDbContext,
-          // Don't pass full DB operations - implement safe proxies in the container
-        });
-        
-        return {
-          status: result.status,
-          headers: result.headers,
-          body: result.body
-        };
-      } catch (error) {
-        // Handle execution errors
-        log("Execution error:", error);
-        return {
-          status: 500,
-          headers: {},
-          body: {
-            error: "Secure execution failed",
-            message: error.message
-          }
-        };
-      }
+  spec: {
+    resources: [...],
+    options: {
+      // Other options...
+    }
+  },
+  port: 3000,
+  
+  // Override JavaScript execution with secure K8s executor
+  executeJs: async (context) => {
+    try {
+      const { code, request, log } = context;
+      
+      // Log that we're executing code in a secure container
+      log("Executing code in isolated container");
+      
+      // Serialize only what's needed from the DB context
+      // This allows safely passing the database functions to the isolated environment
+      const serializedDbContext = {
+        collections: Object.keys(await context.db.getResources("*")),
+        // Add any other safe-to-serialize DB metadata
+      };
+      
+      // Execute in isolated pod
+      const result = await executor.execute(code, {
+        request,
+        db: serializedDbContext,
+        // Don't pass full DB operations - implement safe proxies in the container
+      });
+      
+      return {
+        status: result.status,
+        headers: result.headers,
+        body: result.body
+      };
+    } catch (error) {
+      // Handle execution errors
+      log("Execution error:", error);
+      return {
+        status: 500,
+        headers: {},
+        body: {
+          error: "Secure execution failed",
+          message: error.message
+        }
+      };
     }
   }
 });
@@ -604,6 +608,6 @@ The special `*` wildcard role allows any authenticated user:
 
 ## Next Steps
 
-Return to the [Table of Contents](./README.md) to explore more documentation topics.
+Learn about [OpenAPI Documentation](./openapi-docs.md) in the next section.
 
-**← [API Schema](./schema.md) | [Table of Contents](./README.md)**
+**← [API Schema](./schema.md) | [Table of Contents](./README.md) | [Next: OpenAPI Documentation →](./openapi-docs.md)**

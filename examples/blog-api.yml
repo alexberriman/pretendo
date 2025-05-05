@@ -178,6 +178,9 @@ options:
     max: 500
   defaultPageSize: 10
   maxPageSize: 100
+  docs:
+    enabled: true
+    requireAuth: false
 
 # Initial data
 data:

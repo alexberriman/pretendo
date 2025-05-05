@@ -38,7 +38,7 @@ export const query = (
 
     // Apply field selection
     if (options.fields) {
-      records = selectFields(records, options.fields);
+      records = selectFields(records, options.fields) as DbRecord[];
     }
   }
 

@@ -73,7 +73,18 @@ export async function createTestServer(): Promise<TestServer> {
   const extendedOptions = config.options as ExtendedApiOptions;
   
   extendedOptions.port = port; // Use a random port for tests
-  extendedOptions.dbPath = testDbPath; // Use a separate test database
+  
+  // Configure database options
+  extendedOptions.database = {
+    adapter: "json-file",
+    dbPath: testDbPath, // Use a separate test database
+    autoSave: true,
+    saveInterval: 1000,
+  };
+  
+  // Keep legacy path for backward compatibility
+  extendedOptions.dbPath = testDbPath;
+  
   extendedOptions.latency = { enabled: false }; // Disable latency for faster tests
   extendedOptions.errorSimulation = { enabled: false }; // Disable error simulation for consistent tests
   extendedOptions.strictValidation = true; // Enable strict validation for required fields
@@ -86,7 +97,7 @@ export async function createTestServer(): Promise<TestServer> {
   };
 
   // Create the test server
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec: config });
 
   if (!result.ok) {
     throw new Error(`Failed to create test server: ${result.error.message}`);

@@ -3,67 +3,62 @@ import { createDatabaseService } from "./index.js";
 import { ApiConfig, DatabaseService } from "../types/index.js";
 import { ok, err } from "../types/index.js";
 
-// Mock the store, persistence manager and relationship expander
-vi.mock("./store.js", () => ({
-  createStore: vi.fn(),
+// Mock the adapter system
+vi.mock("./adapters/index.js", () => ({
+  createAdapter: vi.fn(),
+  createAdapterResourceOperations: vi.fn(),
 }));
 
-vi.mock("./persistence.js", () => ({
-  createPersistenceManager: vi.fn(),
-}));
-
-vi.mock("./relations.js", () => ({
-  createRelationshipExpander: vi.fn(),
-}));
-
-// Mock the service modules
+// Mock the resource config module
 vi.mock("./service/index.js", () => ({
-  initialize: vi.fn(),
-  getResource: vi.fn(),
-  reset: vi.fn(),
-  backup: vi.fn(),
-  restore: vi.fn(),
-  getStats: vi.fn(),
+  getResourceConfig: vi.fn(),
 }));
 
 // Import mocked functions
-import { createStore } from "./store.js";
-import { createPersistenceManager } from "./persistence.js";
-import { createRelationshipExpander } from "./relations.js";
 import {
-  initialize,
-  getResource,
-  reset,
-  backup,
-  restore,
-  getStats,
-} from "./service/index.js";
+  createAdapter,
+  createAdapterResourceOperations,
+} from "./adapters/index.js";
+import { getResourceConfig } from "./service/index.js";
 
 describe("createDatabaseService", () => {
   // Mock objects
-  const mockStore = {
-    getData: vi.fn(),
-    getRecord: vi.fn(),
+  const mockAdapter = {
+    initialize: vi.fn().mockResolvedValue(ok(undefined)),
+    getResources: vi.fn().mockResolvedValue(ok([])),
+    getResource: vi.fn().mockResolvedValue(ok(null)),
+    createResource: vi.fn().mockResolvedValue(ok({})),
+    updateResource: vi.fn().mockResolvedValue(ok({})),
+    patchResource: vi.fn().mockResolvedValue(ok({})),
+    deleteResource: vi.fn().mockResolvedValue(ok(true)),
+    findRelated: vi.fn().mockResolvedValue(ok([])),
+    backup: vi.fn().mockResolvedValue(ok("backup/path.json")),
+    restore: vi.fn().mockResolvedValue(ok(undefined)),
+    reset: vi.fn().mockResolvedValue(ok(undefined)),
+    getStats: vi.fn().mockReturnValue({
+      users: { count: 3, lastModified: Date.now() },
+    }),
   };
 
-  const mockPersistenceManager = {
-    saveToFile: vi.fn(),
-    loadFromFile: vi.fn(),
-    backup: vi.fn(),
-    restore: vi.fn(),
-  };
-
-  const mockRelationshipExpander = {
-    expandRelationships: vi.fn(),
-    getRelationships: vi.fn(),
-    findRelatedRecords: vi.fn(),
+  const mockResourceOps = {
+    findAll: vi.fn(),
+    findById: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+    findRelated: vi.fn(),
   };
 
   // Test config
   const testConfig: ApiConfig = {
     resources: [{ name: "users" }, { name: "posts" }],
     options: {
-      dbPath: "./test-db.json",
+      database: {
+        adapter: "json-file",
+        dbPath: "./test-db.json",
+      },
     },
   } as unknown as ApiConfig;
 
@@ -71,21 +66,18 @@ describe("createDatabaseService", () => {
     vi.clearAllMocks();
 
     // Setup mock return values
-    vi.mocked(createStore).mockReturnValue(mockStore as any);
-    vi.mocked(createPersistenceManager).mockReturnValue(
-      mockPersistenceManager as any,
+    vi.mocked(createAdapter).mockReturnValue(ok(mockAdapter));
+    vi.mocked(createAdapterResourceOperations).mockReturnValue(
+      mockResourceOps as any,
     );
-    vi.mocked(createRelationshipExpander).mockReturnValue(
-      mockRelationshipExpander as any,
-    );
+    vi.mocked(getResourceConfig).mockReturnValue(ok({ name: "users" } as any));
 
-    // Setup service mocks
-    vi.mocked(initialize).mockResolvedValue(ok(undefined));
-    vi.mocked(getResource).mockReturnValue(ok({} as any));
-    vi.mocked(reset).mockResolvedValue(ok(undefined));
-    vi.mocked(backup).mockResolvedValue(ok("backup/path.json"));
-    vi.mocked(restore).mockResolvedValue(ok(undefined));
-    vi.mocked(getStats).mockReturnValue({
+    // Setup adapter method mocks
+    mockAdapter.initialize.mockResolvedValue(ok(undefined));
+    mockAdapter.backup.mockResolvedValue(ok("backup/path.json"));
+    mockAdapter.restore.mockResolvedValue(ok(undefined));
+    mockAdapter.reset.mockResolvedValue(ok(undefined));
+    mockAdapter.getStats.mockReturnValue({
       users: { count: 3, lastModified: Date.now() },
     });
   });
@@ -102,18 +94,12 @@ describe("createDatabaseService", () => {
     expect(service).toHaveProperty("restore");
     expect(service).toHaveProperty("getStats");
 
-    // Verify that createStore was called
-    expect(createStore).toHaveBeenCalledWith(expect.any(Object));
-
-    // Verify that createPersistenceManager was called
-    expect(createPersistenceManager).toHaveBeenCalledWith(mockStore, {
-      dbPath: "./test-db.json",
-    });
-
-    // Verify that createRelationshipExpander was called
-    expect(createRelationshipExpander).toHaveBeenCalledWith(
-      expect.any(Object),
-      mockStore,
+    // Verify that createAdapter was called
+    expect(createAdapter).toHaveBeenCalledWith(
+      "json-file",
+      expect.objectContaining({
+        dbPath: "./test-db.json",
+      }),
     );
   });
 
@@ -125,21 +111,25 @@ describe("createDatabaseService", () => {
     });
 
     it("should call initialize with config", async () => {
+      // Reset mock to ensure we capture the call from the test
+      mockAdapter.initialize.mockResolvedValue(ok(undefined));
+
       // Call initialize
       const result = await service.initialize(testConfig);
 
       // Verify the result
       expect(result.ok).toBe(true);
 
-      // Verify that initialize was called
-      expect(initialize).toHaveBeenCalledWith(
-        testConfig,
-        createStore,
-        createPersistenceManager,
-        mockStore,
-        expect.any(Function),
-        expect.any(Function),
+      // Verify that createAdapter was called again with updated config
+      expect(createAdapter).toHaveBeenCalledWith(
+        "json-file",
+        expect.objectContaining({
+          dbPath: "./test-db.json",
+        }),
       );
+
+      // Verify adapter.initialize was called
+      expect(mockAdapter.initialize).toHaveBeenCalled();
     });
 
     it("should call getResource with the resource name", () => {
@@ -149,13 +139,16 @@ describe("createDatabaseService", () => {
       // Verify the result
       expect(result.ok).toBe(true);
 
-      // Verify that getResource was called
-      expect(getResource).toHaveBeenCalledWith(
+      // Verify that getResourceConfig was called to check resource exists
+      expect(getResourceConfig).toHaveBeenCalledWith(
         "users",
         expect.any(Object),
-        mockStore,
-        mockPersistenceManager,
-        mockRelationshipExpander,
+      );
+
+      // Verify that createAdapterResourceOperations was called
+      expect(createAdapterResourceOperations).toHaveBeenCalledWith(
+        "users",
+        mockAdapter,
       );
     });
 
@@ -166,8 +159,8 @@ describe("createDatabaseService", () => {
       // Verify the result
       expect(result.ok).toBe(true);
 
-      // Verify that reset was called
-      expect(reset).toHaveBeenCalledWith(mockStore, mockPersistenceManager);
+      // Verify that adapter.reset was called
+      expect(mockAdapter.reset).toHaveBeenCalled();
     });
 
     it("should call backup with optional path", async () => {
@@ -178,11 +171,8 @@ describe("createDatabaseService", () => {
       expect(result.ok).toBe(true);
       expect(result.value).toBe("backup/path.json");
 
-      // Verify that backup was called
-      expect(backup).toHaveBeenCalledWith(
-        mockPersistenceManager,
-        "custom/path.json",
-      );
+      // Verify that adapter.backup was called
+      expect(mockAdapter.backup).toHaveBeenCalledWith("custom/path.json");
     });
 
     it("should call restore with path", async () => {
@@ -192,11 +182,8 @@ describe("createDatabaseService", () => {
       // Verify the result
       expect(result.ok).toBe(true);
 
-      // Verify that restore was called
-      expect(restore).toHaveBeenCalledWith(
-        mockPersistenceManager,
-        "backup/path.json",
-      );
+      // Verify that adapter.restore was called
+      expect(mockAdapter.restore).toHaveBeenCalledWith("backup/path.json");
     });
 
     it("should call getStats", () => {
@@ -208,8 +195,8 @@ describe("createDatabaseService", () => {
         users: { count: 3, lastModified: expect.any(Number) },
       });
 
-      // Verify that getStats was called
-      expect(getStats).toHaveBeenCalledWith(expect.any(Object), mockStore);
+      // Verify that adapter.getStats was called
+      expect(mockAdapter.getStats).toHaveBeenCalled();
     });
   });
 
@@ -223,7 +210,7 @@ describe("createDatabaseService", () => {
     it("should handle initialize errors", async () => {
       // Setup error
       const testError = new Error("Initialize failed");
-      vi.mocked(initialize).mockResolvedValue(err(testError));
+      mockAdapter.initialize.mockResolvedValue(err(testError));
 
       // Call initialize
       const result = await service.initialize(testConfig);
@@ -238,7 +225,7 @@ describe("createDatabaseService", () => {
     it("should handle getResource errors", () => {
       // Setup error
       const testError = new Error("Resource not found");
-      vi.mocked(getResource).mockReturnValue(err(testError));
+      vi.mocked(getResourceConfig).mockReturnValue(err(testError));
 
       // Call getResource
       const result = service.getResource("nonExistent");
@@ -253,7 +240,7 @@ describe("createDatabaseService", () => {
     it("should handle reset errors", async () => {
       // Setup error
       const testError = new Error("Reset failed");
-      vi.mocked(reset).mockResolvedValue(err(testError));
+      mockAdapter.reset.mockResolvedValue(err(testError));
 
       // Call reset
       const result = await service.reset();

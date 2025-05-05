@@ -16,6 +16,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [Relationships](./relationships.md)
 - [Special Fields](./special-fields.md)
 - [Custom Routes](./custom-routes.md)
+- [OpenAPI Documentation](./openapi-docs.md)
 - [UUID Support](./uuid-example.md)
 
 ### Query Features
@@ -32,6 +33,7 @@ Welcome to the comprehensive documentation for Pretendo. This guide will help yo
 - [Role-Based Access Control](./role-based-access-control.md)
 - [Network Simulation](./network-simulation.md)
 - [Data Persistence](./persistence.md)
+- [Database Adapters](./database-adapters.md)
 
 ### Advanced Usage
 - [Programmatic API](./programmatic-api.md)

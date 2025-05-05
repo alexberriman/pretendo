@@ -1,12 +1,12 @@
-import fs from "fs/promises";
-import path from "path";
-import { Result, Store, err, ok } from "../types/index.js";
+import { DbRecord, Result, Store, err } from "../types/index.js";
+import { DatabaseAdapter } from "./adapters/adapter.js";
+import { createAdapter } from "./adapters/factory.js";
 
 export type PersistenceOptions = {
-  dbPath: string;
+  dbPath?: string;
   autoSave?: boolean;
-  backupOnSave?: boolean;
-  saveInterval?: number; // In milliseconds
+  saveInterval?: number;
+  adapter?: string | object;
 };
 
 export type PersistenceManager = {
@@ -21,56 +21,55 @@ export const createPersistenceManager = (
   options: PersistenceOptions,
 ): PersistenceManager => {
   const {
-    dbPath,
+    dbPath = "./db.json",
     autoSave = true,
-    backupOnSave = false,
     saveInterval = 5000,
+    adapter = "json-file",
   } = options;
 
   let _saveTimer: NodeJS.Timeout | null = null;
 
-  // Create directories if they don't exist
-  const ensureDirectoryExists = async (
-    filePath: string,
-  ): Promise<Result<void, Error>> => {
-    try {
-      const directory = path.dirname(filePath);
-      await fs.mkdir(directory, { recursive: true });
-      return ok(undefined);
-    } catch (error) {
-      return err(
-        error instanceof Error
-          ? error
-          : new Error(`Failed to create directory: ${String(error)}`),
-      );
-    }
-  };
+  // Initialize adapter
+  const adapterResult = createAdapter(adapter as string, {
+    dbPath,
+    autoSave,
+    saveInterval,
+  });
 
-  // Save data to file
+  if (!adapterResult.ok) {
+    throw adapterResult.error;
+  }
+
+  const dbAdapter: DatabaseAdapter = adapterResult.value;
+
+  // Initialize the adapter
+  (async () => {
+    await dbAdapter.initialize();
+  })();
+
+  // Save data to storage
   const saveToFile = async (): Promise<Result<void, Error>> => {
     try {
-      // Ensure directory exists
-      const directoryResult = await ensureDirectoryExists(dbPath);
-      if (!directoryResult.ok) {
-        return directoryResult;
-      }
-
-      // Create backup if needed
-      if (backupOnSave) {
-        const existsResult = await fileExists(dbPath);
-        if (existsResult.ok && existsResult.value) {
-          const backupResult = await backup();
-          if (!backupResult.ok) {
-            return backupResult;
-          }
-        }
-      }
-
-      // Save data
+      // Get data from store
       const data = store.getData();
-      const jsonData = JSON.stringify(data, null, 2);
-      await fs.writeFile(dbPath, jsonData, "utf-8");
-      return ok(undefined);
+
+      // If data is a Result type (error), return the error
+      if ("ok" in data && !data.ok) {
+        return err(
+          data.error instanceof Error
+            ? data.error
+            : new Error(`Failed to get data from store: ${String(data.error)}`),
+        );
+      }
+
+      // Save to adapter
+      const saveResult = await dbAdapter.save(
+        typeof data === "object" && data !== null
+          ? (data as Record<string, DbRecord[]>)
+          : {},
+      );
+
+      return saveResult;
     } catch (error) {
       return err(
         error instanceof Error
@@ -80,42 +79,21 @@ export const createPersistenceManager = (
     }
   };
 
-  // Load data from file
+  // Load data from storage
   const loadFromFile = async (): Promise<Result<void, Error>> => {
     try {
-      // Check if file exists
-      const existsResult = await fileExists(dbPath);
-      if (!existsResult.ok) {
-        return existsResult;
-      }
+      // Load from adapter
+      const loadResult = await dbAdapter.load();
 
-      if (!existsResult.value) {
-        // File doesn't exist, create empty file
-        const saveResult = await saveToFile();
-        return saveResult;
-      }
-
-      // Read file and parse
-      const fileContent = await fs.readFile(dbPath, "utf-8");
-      let data = {};
-
-      try {
-        data = JSON.parse(fileContent);
-      } catch (parseError) {
-        return err(
-          parseError instanceof Error
-            ? parseError
-            : new Error(`Failed to parse JSON: ${String(parseError)}`),
-        );
+      if (!loadResult.ok) {
+        return loadResult;
       }
 
       // Reset store with loaded data
+      const data = loadResult.value;
       const resetResult = store.reset(data);
-      if (!resetResult.ok) {
-        return resetResult;
-      }
 
-      return ok(undefined);
+      return resetResult;
     } catch (error) {
       return err(
         error instanceof Error
@@ -125,59 +103,12 @@ export const createPersistenceManager = (
     }
   };
 
-  // Check if file exists
-  const fileExists = async (
-    filePath: string,
-  ): Promise<Result<boolean, Error>> => {
-    try {
-      await fs.access(filePath);
-      return ok(true);
-    } catch (error) {
-      // File doesn't exist
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        return ok(false);
-      }
-
-      // Other error
-      return err(
-        error instanceof Error
-          ? error
-          : new Error(`Failed to check if file exists: ${String(error)}`),
-      );
-    }
-  };
-
   // Create a backup
   const backup = async (
     backupPath?: string,
   ): Promise<Result<string, Error>> => {
     try {
-      // Check if source file exists
-      const existsResult = await fileExists(dbPath);
-      if (!existsResult.ok) {
-        return err(existsResult.error);
-      }
-
-      if (!existsResult.value) {
-        return err(
-          new Error(`Cannot backup: source file does not exist at ${dbPath}`),
-        );
-      }
-
-      // Generate backup path if not provided
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const defaultBackupPath = `${dbPath}.${timestamp}.backup`;
-      const targetPath = backupPath || defaultBackupPath;
-
-      // Ensure backup directory exists
-      const directoryResult = await ensureDirectoryExists(targetPath);
-      if (!directoryResult.ok) {
-        return err(directoryResult.error);
-      }
-
-      // Copy file
-      await fs.copyFile(dbPath, targetPath);
-      return ok(targetPath);
+      return await dbAdapter.backup(backupPath);
     } catch (error) {
       return err(
         error instanceof Error
@@ -190,40 +121,18 @@ export const createPersistenceManager = (
   // Restore from backup
   const restore = async (backupPath: string): Promise<Result<void, Error>> => {
     try {
-      // Check if backup file exists
-      const existsResult = await fileExists(backupPath);
-      if (!existsResult.ok) {
-        return err(existsResult.error);
+      // Restore via adapter
+      const restoreResult = await dbAdapter.restore(backupPath);
+
+      if (!restoreResult.ok) {
+        return err(restoreResult.error);
       }
 
-      if (!existsResult.value) {
-        return err(
-          new Error(
-            `Cannot restore: backup file does not exist at ${backupPath}`,
-          ),
-        );
-      }
+      // Reset store with loaded data
+      const data = restoreResult.value;
+      const resetResult = store.reset(data);
 
-      // Ensure target directory exists
-      const directoryResult = await ensureDirectoryExists(dbPath);
-      if (!directoryResult.ok) {
-        return err(directoryResult.error);
-      }
-
-      // Create backup of current file if it exists
-      const currentExists = await fileExists(dbPath);
-      if (currentExists.ok && currentExists.value) {
-        const currentBackupResult = await backup();
-        if (!currentBackupResult.ok) {
-          return err(currentBackupResult.error);
-        }
-      }
-
-      // Copy backup to main file
-      await fs.copyFile(backupPath, dbPath);
-
-      // Reload data
-      return await loadFromFile();
+      return resetResult;
     } catch (error) {
       return err(
         error instanceof Error

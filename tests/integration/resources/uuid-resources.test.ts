@@ -58,7 +58,7 @@ describe('UUID Resources API', () => {
 
   beforeAll(async () => {
     // Create the mock API
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create test server: ${result.error.message}`);
     }

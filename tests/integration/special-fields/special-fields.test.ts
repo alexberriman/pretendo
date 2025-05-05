@@ -52,7 +52,7 @@ describe("Special Fields Integration Tests", () => {
       },
     };
 
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     
     if (!result.ok) {
       throw result.error;

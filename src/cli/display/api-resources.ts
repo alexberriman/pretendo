@@ -72,4 +72,13 @@ export const displayApiResources = (config: ApiConfig): void => {
   logInfo(
     `  ${chalk.green("POST")}   ${chalk.white("/__restore")}      ${chalk.gray("- Restore from backup")}`,
   );
+
+  // Display docs endpoint if enabled
+  if (config.options?.docs?.enabled !== false) {
+    const requireAuth = config.options?.docs?.requireAuth === true;
+    logInfo(chalk.bold.green("\n📚 Documentation Endpoints:"));
+    logInfo(
+      `  ${chalk.blue("GET")}    ${chalk.white("/__docs")}         ${chalk.gray(`- API documentation${requireAuth ? " (auth required)" : ""}`)}`,
+    );
+  }
 };

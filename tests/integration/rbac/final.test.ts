@@ -61,7 +61,7 @@ describe('Role-Based Access Control', () => {
     };
 
     // Create the server
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create test server: ${result.error.message}`);
     }

@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, RequestHandler } from "express";
 import http from "http";
 import {
   ApiConfig,
@@ -96,6 +96,96 @@ export const createServer = (
         documentation: "https://github.com/alexberriman/pretendo",
       });
     });
+
+    // Add docs route before error handler
+    // This needs to be outside the main router to avoid RBAC middleware
+    const isDocsEnabled =
+      options.docs?.enabled ?? process.env.NODE_ENV !== "production";
+
+    if (isDocsEnabled) {
+      // Fix typing issue with proper RequestHandler type
+      const docsHandler: RequestHandler = async (req, res, _next) => {
+        try {
+          // Check if authentication is required for docs
+          const requireAuth =
+            options.docs?.requireAuth ?? process.env.NODE_ENV === "production";
+
+          // Define proper types for user and apiConfig
+          interface RequestWithUserAndConfig extends Request {
+            user?: { id: string | number; username: string; role?: string };
+            apiConfig?: ApiConfig;
+          }
+
+          const typedReq = req as RequestWithUserAndConfig;
+
+          if (requireAuth && options.auth?.enabled) {
+            // Check if the user is authenticated
+            const user = typedReq.user;
+            if (!user) {
+              res.status(401).json({
+                status: 401,
+                message: "Authentication required",
+                code: "UNAUTHORIZED",
+              });
+              return;
+            }
+
+            // If user doesn't have admin role, deny access
+            if (user.role !== "admin") {
+              res.status(403).json({
+                status: 403,
+                message: "Admin role required to access API documentation",
+                code: "FORBIDDEN",
+              });
+              return;
+            }
+          }
+
+          // Get API config from request
+          const apiConfig = typedReq.apiConfig;
+          if (!apiConfig) {
+            res.status(500).json({
+              status: 500,
+              message: "API configuration not available",
+              code: "SERVER_ERROR",
+            });
+            return;
+          }
+
+          // Import OpenAPI utilities directly to avoid dynamic import issues
+          // We can import directly here because the route handler is only registered
+          // when the server starts, not when the module is loaded
+          const { convertToOpenApi, convertToYaml } = await import(
+            "../utils/openapi/index.js"
+          );
+
+          // Generate OpenAPI spec
+          const openApiSpec = convertToOpenApi(apiConfig);
+
+          // Check for format query parameter
+          const format = (req.query.format as string)?.toLowerCase();
+          if (format === "yaml") {
+            const yamlSpec = convertToYaml(openApiSpec);
+            res.setHeader("Content-Type", "text/yaml");
+            res.send(yamlSpec);
+            return;
+          }
+
+          // Default to JSON format
+          res.json(openApiSpec);
+        } catch (error) {
+          logger.error("Error generating OpenAPI documentation:", error);
+          res.status(500).json({
+            status: 500,
+            message: "Failed to generate API documentation",
+            details: (error as Error).message,
+          });
+        }
+      };
+
+      // Register the handler with Express
+      app.get("/__docs", docsHandler);
+    }
 
     // Add global error handler
     app.use(errorHandlerMiddleware);

@@ -1,17 +1,46 @@
 # 💾 Data Persistence
 
-Pretendo provides several ways to persist and manage your mock data across server restarts and between different environments.
+Pretendo provides several ways to persist and manage your mock data across server restarts and between different environments. The pluggable database adapter system enables connecting to different storage backends.
 
-**← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Programmatic API →](./programmatic-api.md)**
+**← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Database Adapters →](./database-adapters.md)**
 
 ## Persistence Options
 
 The API supports multiple persistence strategies:
 
-1. **In-memory**: Data exists only during server runtime (default)
-2. **File-based**: Data is saved to a JSON file
-3. **Local storage**: Data is stored in the browser's localStorage (when used in browser environments)
-4. **Custom storage**: Implement your own storage solution
+1. **In-memory**: Data exists only during server runtime (fast but not persisted)
+2. **File-based**: Data is saved to a JSON file (default)
+3. **Custom adapters**: Connect to any storage system like PostgreSQL, MongoDB, DynamoDB
+
+## Database Adapter System
+
+Pretendo uses a flexible adapter pattern to connect to different storage backends:
+
+### Built-in Adapters
+
+- **JSON File Adapter**: Stores data in a local JSON file
+- **Memory Adapter**: Keeps data in memory only (non-persistent)
+
+### Configuring Adapters
+
+Configure your database adapter in your API configuration:
+
+```yaml
+options:
+  database:
+    adapter: "json-file"       # Built-in adapter type: "json-file" or "memory"
+    dbPath: "./data/db.json"   # Path for file storage
+    autoSave: true             # Auto-save on changes
+    saveInterval: 5000         # Save every 5 seconds
+```
+
+For in-memory storage (useful for tests):
+
+```yaml
+options:
+  database:
+    adapter: "memory"
+```
 
 ## File-Based Persistence
 
@@ -21,12 +50,11 @@ Enable file-based persistence in your API configuration:
 
 ```yaml
 options:
-  persistence:
-    enabled: true
-    type: "file"
-    file: "./data/db.json"  # Path to data file
-    autoSave: true          # Auto-save on changes
-    autoSaveInterval: 5000  # Save every 5 seconds
+  database:
+    adapter: "json-file"
+    dbPath: "./data/db.json"
+    autoSave: true
+    saveInterval: 5000
 ```
 
 ### Manual Persistence Control
@@ -76,10 +104,9 @@ Create and restore data snapshots for testing different scenarios:
 
 ```yaml
 options:
-  persistence:
-    enabled: true
-    type: "file"
-    file: "./data/db.json"
+  database:
+    adapter: "json-file"
+    dbPath: "./data/db.json"
     snapshots:
       enabled: true
       directory: "./data/snapshots"
@@ -226,52 +253,120 @@ For large datasets, you can optimize performance:
 
 ```yaml
 options:
-  persistence:
-    enabled: true
-    type: "file"
-    file: "./data/db.json"
+  database:
+    adapter: "json-file"
+    dbPath: "./data/db.json"
     optimizations:
       indexedFields: ["userId", "category", "createdAt"]
       cacheSize: 1000
       lazyLoading: true
 ```
 
-## Sharing Data Between Team Members
+## Creating Custom Database Adapters
 
-To share the same mock API state across a team:
+You can create custom database adapters to connect to different backend systems like PostgreSQL, MongoDB, etc.
 
-1. **Version control**: Commit your data file to your repository
-2. **Snapshots**: Create and share named snapshots
-3. **Seed scripts**: Use deterministic seed scripts
+### Database Adapter Interface
 
-## Custom Persistence Adapters
+All database adapters must implement this interface:
 
-You can implement custom persistence adapters for special needs:
+```typescript
+interface DatabaseAdapter {
+  // Initialize the adapter
+  initialize(): Promise<Result<void, Error>>;
+  
+  // Resource operations
+  getResources(resource: string, query?: QueryOptions): Promise<Result<DbRecord[], Error>>;
+  getResource(resource: string, id: string | number): Promise<Result<DbRecord | null, Error>>;
+  createResource(resource: string, data: DbRecord): Promise<Result<DbRecord, Error>>;
+  updateResource(resource: string, id: string | number, data: DbRecord): Promise<Result<DbRecord | null, Error>>;
+  patchResource(resource: string, id: string | number, data: Partial<DbRecord>): Promise<Result<DbRecord | null, Error>>;
+  deleteResource(resource: string, id: string | number): Promise<Result<boolean, Error>>;
+  findRelated(resource: string, id: string | number, relationship: string, query?: QueryOptions): Promise<Result<DbRecord[], Error>>;
+  
+  // Database management
+  backup(backupPath?: string): Promise<Result<string, Error>>;
+  restore(backupPath: string): Promise<Result<void, Error>>;
+  reset(): Promise<Result<void, Error>>;
+  getStats(): Record<string, { count: number; lastModified: number }>;
+}
+```
+
+### Example Custom Adapter
+
+Here's an example adapter for PostgreSQL:
 
 ```javascript
-// MongoDB persistence adapter example
-const { createMockApi, createAdapter } = require('pretendo');
+// PostgreSQL adapter example
+import { Pool } from 'pg';
+import { DatabaseAdapter } from 'pretendo';
 
-const mongoAdapter = createAdapter({
-  async load() {
-    // Load data from MongoDB
-  },
+export class PostgresAdapter implements DatabaseAdapter {
+  private pool: Pool;
   
-  async save(data) {
-    // Save data to MongoDB
-  },
-  
-  async reset() {
-    // Reset to initial state
+  constructor(options) {
+    this.pool = new Pool({
+      host: options.host || 'localhost',
+      port: options.port || 5432,
+      database: options.database || 'pretendo',
+      user: options.user || 'postgres',
+      password: options.password || '',
+    });
   }
-});
+  
+  async initialize() {
+    // Set up tables if they don't exist
+    // ...
+  }
+  
+  async getResources(resource, query) {
+    // Implement query with filters, sorting, pagination
+    // ...
+  }
+  
+  async getResource(resource, id) {
+    // Get a single resource by ID
+    // ...
+  }
+  
+  // ... implement other required methods
+}
+```
 
-createMockApi({
-  // ... your API configuration
-  options: {
-    persistence: {
-      adapter: mongoAdapter
-    }
+### Using a Custom Adapter
+
+You can use your custom adapter in two ways:
+
+1. **Class instantiation**:
+
+```javascript
+import { createMockApi } from 'pretendo';
+import { PostgresAdapter } from './postgres-adapter.js';
+
+const api = createMockApi({
+  spec: {
+    // Your API definition (resources, options, etc.)
+  },
+  database: new PostgresAdapter({
+    host: 'localhost',
+    port: 5432,
+    database: 'my_api',
+    user: 'user',
+    password: 'password'
+  })
+});
+```
+
+2. **Configuration string** (for built-in adapters):
+
+```javascript
+const api = createMockApi({
+  spec: {
+    // Your API definition (resources, options, etc.)
+  },
+  database: {
+    adapter: 'json-file',  // or 'memory'
+    dbPath: './data/db.json'
   }
 });
 ```
@@ -288,11 +383,11 @@ pretendo start api.yml --reset
 pretendo start api.yml --snapshot test-scenario-1
 
 # Use in-memory mode for faster tests
-pretendo start api.yml --no-persistence
+pretendo start api.yml --database.adapter=memory
 ```
 
 ## Next Steps
 
 Now that you understand data persistence, learn about the [Programmatic API](./programmatic-api.md) to integrate Pretendo into your applications.
 
-**← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Programmatic API →](./programmatic-api.md)**
+**← [Network Simulation](./network-simulation.md) | [Table of Contents](./README.md) | [Next: Database Adapters →](./database-adapters.md)**

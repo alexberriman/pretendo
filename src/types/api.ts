@@ -69,7 +69,7 @@ export type DatabaseService = {
   ) => Result<import("./config.js").Resource, Error>;
   reset: () => Promise<Result<void, Error>>;
   backup: (path?: string) => Promise<Result<string, Error>>;
-  restore: (path: string) => Promise<Result<void, Error>>;
+  restore: (path: string) => Promise<Result<Record<string, DbRecord[]>, Error>>;
   getStats?: () => Record<string, { count: number; lastModified: number }>;
 };
 

@@ -146,7 +146,7 @@ For a step-by-step tutorial, see our [Quick Start Guide](./docs/quick-start.md).
 ```typescript
 import { createMockApi } from "pretendo";
 
-const config = {
+const spec = {
   resources: [
     {
       name: "users",
@@ -161,7 +161,7 @@ const config = {
 };
 
 async function startServer() {
-  const result = await createMockApi(config);
+  const result = await createMockApi({ spec });
 
   if (result.ok) {
     console.log(`🚀 Server running at: ${result.value.getUrl()}`);
@@ -508,10 +508,10 @@ describe("User API", () => {
   let server;
 
   beforeAll(async () => {
-    const config = {
-      /* Your test API config */
+    const spec = {
+      /* Your test API spec */
     };
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec });
     server = result.value;
   });
 

@@ -2,15 +2,27 @@ import { DbRecord } from "../../../types/index.js";
 import { cloneDeep } from "lodash-es";
 
 /**
- * Selects specific fields from records to return partial responses
+ * Selects specific fields from a record or records to return partial responses
  */
 export const selectFields = (
-  records: DbRecord[],
+  recordOrRecords: DbRecord | DbRecord[],
   fields?: string[],
-): DbRecord[] => {
-  if (!fields || fields.length === 0) return cloneDeep(records);
+): DbRecord | DbRecord[] => {
+  if (!fields || fields.length === 0) return cloneDeep(recordOrRecords);
 
-  return records.map((record) => {
+  // Handle single record
+  if (!Array.isArray(recordOrRecords)) {
+    const newRecord: DbRecord = {};
+    fields.forEach((field) => {
+      if (recordOrRecords[field] !== undefined) {
+        newRecord[field] = cloneDeep(recordOrRecords[field]);
+      }
+    });
+    return newRecord;
+  }
+
+  // Handle array of records
+  return recordOrRecords.map((record) => {
     const newRecord: DbRecord = {};
     fields.forEach((field) => {
       if (record[field] !== undefined) {

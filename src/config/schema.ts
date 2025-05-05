@@ -226,6 +226,22 @@ export const configSchema = {
           type: "number",
           description: "Maximum allowed page size",
         },
+        docs: {
+          type: "object",
+          description: "OpenAPI documentation configuration",
+          properties: {
+            enabled: {
+              type: "boolean",
+              description:
+                "Whether the OpenAPI documentation endpoint is enabled",
+            },
+            requireAuth: {
+              type: "boolean",
+              description:
+                "Whether to require authentication for the documentation endpoint",
+            },
+          },
+        },
       },
     },
     data: {

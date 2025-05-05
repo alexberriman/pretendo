@@ -50,13 +50,18 @@ describe("Field Validation Integration Tests", () => {
     ],
     options: {
       port: 0, // Random port
+      database: {
+        adapter: "memory", // Use memory adapter for validation tests
+        strictValidation: true, // Make sure validation is enabled in the adapter
+      },
+      strictValidation: true, // Enable strict validation
     },
   };
 
   // Create a fresh server for each test to avoid data contamination
   beforeEach(async () => {
     // Create a new server for each test to ensure database isolation
-    const result = await createMockApi(config);
+    const result = await createMockApi({ spec: config });
     if (!result.ok) {
       throw new Error(`Failed to create mock API: ${result.error.message}`);
     }
