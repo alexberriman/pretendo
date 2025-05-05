@@ -121,13 +121,155 @@ JavaScript routes allow you to define custom logic to handle requests and genera
 
 ### Important Security Notice
 
-⚠️ **IMPORTANT**: JavaScript routes execute code directly in the Node.js process with no sandboxing or isolation. This means the code has full access to the Node.js environment and can potentially interact with the file system, network, or any other system resources. You should only use JavaScript routes with code that you trust completely.
+⚠️ **IMPORTANT**: By default, JavaScript routes execute code directly in the Node.js process with no sandboxing or isolation. This means the code has full access to the Node.js environment and can potentially interact with the file system, network, or any other system resources. You should only use JavaScript routes with code that you trust completely.
 
 **Security Recommendations:**
 1. Never run untrusted JavaScript code from external sources
 2. Carefully review all JavaScript code before adding it to your routes
-3. Only use this for development and testing, never in production with untrusted code
-4. Consider implementing a proper sandboxing solution if security isolation is required
+3. Only use the default execution engine for development and testing, never in production with untrusted code
+4. For production environments with untrusted code, use the **executeJs hook** (described below) to run code in a secure, isolated environment
+
+### The executeJs Hook
+
+If you need to execute untrusted JavaScript in a production environment, Pretendo provides an **executeJs hook** that lets you override the default execution engine with your own implementation. This allows you to redirect JavaScript execution to an isolated environment like a container, serverless function, or other secure execution system.
+
+To use this feature, provide an `executeJs` function in your Pretendo configuration:
+
+```javascript
+import { createMockApi } from "pretendo";
+
+const server = await createMockApi({
+  resources: [...],
+  options: {
+    // Other options...
+    
+    executeJs: async (context) => {
+      // context contains: code, request, db, log
+      
+      // Example: Send code to an isolated execution service
+      const result = await isolatedExecutionService.execute(
+        context.code, 
+        {
+          request: context.request,
+          // Pass any other context needed by the code
+        }
+      );
+      
+      // Return the result with proper status, headers and body
+      return {
+        status: result.status || 200,
+        headers: result.headers || {},
+        body: result.data
+      };
+    }
+  }
+});
+```
+
+#### Hook Context Object
+
+The `executeJs` hook receives a context object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `code` | string | The JavaScript code string to execute |
+| `request` | object | The HTTP request object (same as in JavaScript routes) |
+| `request.params` | object | URL parameters from path parameters like /:id |
+| `request.query` | object | Query parameters from URL like ?foo=bar |
+| `request.body` | any | Request body from JSON or form data |
+| `request.headers` | object | HTTP headers from the request |
+| `request.method` | string | HTTP method (GET, POST, etc.) |
+| `request.path` | string | Request path |
+| `request.user` | object | Authenticated user (if available) |
+| `db` | object | Database operations interface |
+| `log` | function | Logging function |
+
+#### Hook Return Value
+
+The hook must return a `Promise` that resolves to an object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `status` | number | HTTP status code (default: 200) |
+| `headers` | object | HTTP headers to include in the response |
+| `body` | any | Response body (will be automatically converted to JSON) |
+
+### Example: Secure Execution in Kubernetes
+
+Here's a more complete example of using the `executeJs` hook to securely execute JavaScript in isolated Kubernetes pods:
+
+```javascript
+import { createMockApi } from "pretendo";
+import { KubernetesExecutor } from "./my-k8s-executor";
+
+// Configure an executor that runs code in isolated pods
+const executor = new KubernetesExecutor({
+  namespace: "js-execution",
+  timeoutSeconds: 10,
+  memoryLimit: "128Mi",
+  cpuLimit: "100m"
+});
+
+const server = await createMockApi({
+  resources: [...],
+  options: {
+    port: 3000,
+    
+    // Override JavaScript execution with secure K8s executor
+    executeJs: async (context) => {
+      try {
+        const { code, request, log } = context;
+        
+        // Log that we're executing code in a secure container
+        log("Executing code in isolated container");
+        
+        // Serialize only what's needed from the DB context
+        // This allows safely passing the database functions to the isolated environment
+        const serializedDbContext = {
+          collections: Object.keys(await context.db.getResources("*")),
+          // Add any other safe-to-serialize DB metadata
+        };
+        
+        // Execute in isolated pod
+        const result = await executor.execute(code, {
+          request,
+          db: serializedDbContext,
+          // Don't pass full DB operations - implement safe proxies in the container
+        });
+        
+        return {
+          status: result.status,
+          headers: result.headers,
+          body: result.body
+        };
+      } catch (error) {
+        // Handle execution errors
+        log("Execution error:", error);
+        return {
+          status: 500,
+          headers: {},
+          body: {
+            error: "Secure execution failed",
+            message: error.message
+          }
+        };
+      }
+    }
+  }
+});
+```
+
+#### Security Benefits
+
+Using the `executeJs` hook provides several security advantages:
+
+1. **Process Isolation**: Code execution is isolated from your main application
+2. **Resource Limits**: Apply memory and CPU limits to prevent DoS attacks
+3. **Network Control**: Restrict network access in the execution environment
+4. **Timeouts**: Enforce strict execution time limits
+5. **Statelessness**: Each execution is completely independent
+6. **Scalability**: Execute code in distributed environments
+7. **Monitoring**: Add centralized logging and instrumentation
 
 ### JavaScript Context
 
