@@ -4,6 +4,13 @@ export type ResourceField = {
   required?: boolean;
   defaultValue?: unknown;
   description?: string;
+  enum?: unknown[];
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  unique?: boolean;
 };
 
 export type Relationship = {

@@ -83,6 +83,78 @@ fields:
 | `pattern` | string | Regex pattern for validation (for strings) | - |
 | `unique` | boolean | Whether the field must be unique across records | `false` |
 
+### Field Validation Rules
+
+Pretendo provides built-in validation for your resource fields to ensure data integrity and consistency. These validation rules are automatically applied during record creation and updates.
+
+| Validation Rule | Applicable Types | Description | When Applied |
+|----------------|------------------|-------------|--------------|
+| `required` | All | Ensures the field has a value | Creation only |
+| `enum` | All | Validates that the value is one of the specified options | Creation & Update |
+| `min` | number | Validates the minimum value allowed | Creation & Update |
+| `max` | number | Validates the maximum value allowed | Creation & Update |
+| `minLength` | string | Validates the minimum string length | Creation & Update |
+| `maxLength` | string | Validates the maximum string length | Creation & Update |
+| `pattern` | string | Validates string against a regex pattern | Creation & Update |
+| `unique` | All | Ensures the value is unique across all records of this resource | Creation & Update |
+
+#### Validation Behavior
+
+- **Required Fields**: Only enforced during record creation, not during updates. This allows for partial updates without needing to include all required fields.
+- **Unique Fields**: Checked against all existing records before allowing an insert or update. During updates, the validation ignores the current record being updated (to allow saving without changes).
+- **Pattern Matching**: Uses JavaScript's RegExp for validation, so all JavaScript regular expression syntax is supported.
+
+#### Examples
+
+```yaml
+# User resource with validation rules
+- name: users
+  fields:
+    - name: id
+      type: number
+    
+    - name: username
+      type: string
+      required: true
+      unique: true
+      minLength: 3
+      maxLength: 20
+      pattern: "^[a-zA-Z0-9_]+$"
+      description: "Username must be 3-20 alphanumeric characters or underscores"
+    
+    - name: email
+      type: string
+      required: true
+      unique: true
+      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      description: "Must be a valid email address"
+    
+    - name: age
+      type: number
+      min: 13
+      max: 120
+      description: "User must be at least 13 years old"
+    
+    - name: role
+      type: string
+      enum: ["user", "admin", "editor"]
+      defaultValue: "user"
+      description: "User role must be one of the allowed values"
+```
+
+#### Validation Error Responses
+
+When validation fails, Pretendo returns a descriptive error message explaining the validation issue:
+
+```json
+{
+  "error": {
+    "message": "Validation failed: Field 'username' must be at least 3 characters; Value for 'role' must be one of: user, admin, editor",
+    "status": 400
+  }
+}
+```
+
 ### Supported Field Types
 
 | Type | Description | Example Values |
